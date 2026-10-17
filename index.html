@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<script>
+  (function () {
+    var pref = "auto";
+    try { pref = localStorage.getItem("mode") || "auto"; } catch (e) {}
+    var dark = pref === "dark" || (pref === "auto" && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
+    document.documentElement.setAttribute("data-mode", dark ? "dark" : "light");
+  })();
+</script>
+<meta name="theme-color" content="#3A2418">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Formation TikTok et Facebook : construis ton audience et porte ta voix</title>
+<meta name="description" content="18 vidéos pour apprendre à créer du contenu, gagner des abonnés sur TikTok et Facebook et construire une communauté engagée.">
+<style>
+  :root { --indigo:#0B4A57; --indigo-2:#126073; --accent:#E0307F; --accent-ink:#FFFFFF; --ok:#0B4A57; --kola:#062F39; --sand:#FDF0F4; --pattern:#E0307F; --ink:#1B1A22; --muted:#5A5560; --bg:#FFFFFF; --surface:#FFFFFF; --band:#FDF0F4; --line:#EBD3DB; --radius:12px;
+    --font:"Avenir Next","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; }
+  :root[data-mode="dark"] { color-scheme:dark; --bg:#121316; --band:#1A1B20; --surface:#1F2026; --ink:#EDEBEF; --muted:#A9A5B0; --line:#34353E; --ok:var(--accent); }
+  :root[data-mode="dark"] .btn.wa { color:#06240F; }
+  * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { margin:0; font-family:var(--font); color:var(--ink); background:var(--bg); line-height:1.6; font-size:17px; padding-bottom:84px; }
+  img,svg { max-width:100%; }
+  a { color:inherit; }
+  .wrap { max-width:1040px; margin:0 auto; padding:0 20px; }
+  h1,h2,h3 { line-height:1.12; letter-spacing:-0.02em; margin:0; }
+  h1 { font-size:clamp(2rem,6.4vw,3.5rem); font-weight:800; }
+  h2 { font-size:clamp(1.55rem,4.4vw,2.2rem); font-weight:800; }
+  h3 { font-size:1.1rem; font-weight:700; letter-spacing:-0.01em; }
+  p { margin:0 0 1em; }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; background:var(--accent); color:var(--accent-ink); font:inherit; font-weight:800; font-size:1.05rem; padding:16px 26px; border-radius:var(--radius); border:0; text-decoration:none; cursor:pointer; transition:transform .12s ease,box-shadow .12s ease; box-shadow:0 2px 0 rgba(0,0,0,.25); }
+  .btn:hover { transform:translateY(-1px); box-shadow:0 4px 0 rgba(0,0,0,.25); }
+  .btn:focus-visible,summary:focus-visible,a:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
+  .btn.full { width:100%; }
+  .btn.wa { background:#25D366; color:#06240F; }
+  .btn.ghost { background:transparent; color:var(--ink); border:1.5px solid var(--line); box-shadow:none; flex:0 0 auto; }
+  .btn[disabled] { opacity:.6; cursor:wait; }
+  .hero { background:var(--indigo); color:#fff; padding:40px 0 56px; position:relative; overflow:hidden; }
+  .hero::before { content:""; position:absolute; right:-140px; top:-140px; width:520px; height:520px; border-radius:50%; background:repeating-radial-gradient(circle,transparent 0 16px,rgba(255,255,255,.07) 16px 21px); pointer-events:none; }
+  .hero::after { content:""; position:absolute; left:-90px; bottom:-110px; width:300px; height:300px; border-radius:50%; background:repeating-radial-gradient(circle,transparent 0 12px,var(--pattern) 12px 15px); opacity:.22; pointer-events:none; }
+  .hero .grid { position:relative; z-index:1; display:grid; gap:32px; align-items:start; }
+  .hero p.lead { font-size:1.15rem; color:#E1E3F5; max-width:34em; margin:18px 0 0; }
+  .card { background:var(--surface); color:var(--ink); border-radius:14px; padding:24px; box-shadow:0 14px 40px rgba(0,0,0,.3); }
+  .card .price { font-size:2.6rem; font-weight:800; letter-spacing:-0.03em; line-height:1; }
+  .card .price small { display:block; margin-top:8px; font-size:1rem; font-weight:600; color:var(--muted); letter-spacing:0; }
+  .card ul { list-style:none; padding:0; margin:16px 0 20px; }
+  .card li { padding:6px 0 6px 28px; position:relative; font-size:.97rem; }
+  .card li::before { content:""; position:absolute; left:3px; top:12px; width:12px; height:7px; border-left:3px solid var(--ok); border-bottom:3px solid var(--ok); transform:rotate(-45deg); }
+  .topbar { background:var(--kola); color:#F6EEDF; font-size:.92rem; padding:9px 0; }
+  .topbar .wrap { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:28px; }
+  .topbar .btn { background:transparent; border:1px solid rgba(255,255,255,.4); box-shadow:none; font-weight:600; }
+  .topbar .btn:hover { background:rgba(255,255,255,.12); box-shadow:none; transform:none; }
+  .cloth { height:18px; background-color:var(--kola); background-image:linear-gradient(135deg,var(--pattern) 25%,transparent 25%),linear-gradient(225deg,var(--pattern) 25%,transparent 25%),linear-gradient(315deg,var(--pattern) 25%,transparent 25%),linear-gradient(45deg,var(--pattern) 25%,transparent 25%); background-size:18px 18px; background-position:-9px 0,-9px 0,0 0,0 0; }
+  dialog#checkout { border:1.5px solid var(--line); border-radius:14px; padding:24px; width:min(480px,calc(100% - 32px)); background:var(--surface); color:var(--ink); box-shadow:0 20px 50px rgba(0,0,0,.4); position:relative; }
+  dialog#checkout::backdrop { background:rgba(0,0,0,.55); }
+  .modal-close-btn { position:absolute; top:12px; right:12px; width:32px; height:32px; border:0; border-radius:50%; background:var(--band); color:var(--ink); font-size:1.4rem; line-height:1; cursor:pointer; display:grid; place-items:center; }
+  .modal-close-btn:hover { background:var(--line); }
+  #checkout h3 { font-size:1.25rem; margin-bottom:6px; text-align:center; }
+  #checkout label { display:block; font-weight:700; font-size:.92rem; margin:14px 0 4px; }
+  #checkout input { width:100%; font:inherit; padding:12px; border-radius:10px; border:1.5px solid var(--line); background:var(--bg); color:var(--ink); }
+  #checkout input:focus-visible { outline:3px solid var(--accent); outline-offset:1px; }
+  .password-container { position:relative; display:flex; align-items:center; }
+  .password-container input { padding-right:45px; }
+  .toggle-password { position:absolute; right:12px; background:none; border:none; cursor:pointer; color:var(--muted); font-size:1.1rem; padding:4px; }
+  .err { color:#E5484D; font-weight:600; font-size:.9rem; margin:12px 0 0; text-align:center; }
+  .row { display:flex; gap:10px; margin-top:18px; }
+  .note { font-size:.85rem; color:var(--muted); margin:12px 0 0; text-align:center; }
+  .payment-box { background:var(--band); border:1.5px solid var(--line); border-radius:12px; padding:18px; margin-top:10px; text-align:center; }
+  .payment-icon { width:64px; height:64px; margin:0 auto 12px; background:var(--accent); color:var(--accent-ink); border-radius:50%; display:grid; place-items:center; font-size:1.8rem; }
+  .phone-number-display { font-size:1.5rem; font-weight:800; color:var(--accent); letter-spacing:.05em; background:var(--surface); padding:10px; border-radius:8px; border:1px dashed var(--accent); display:inline-block; margin:8px 0; }
+  .operators-grid { display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin:12px 0; }
+  .op-badge { font-size:.78rem; font-weight:800; padding:5px 10px; border-radius:6px; color:#fff; }
+  .op-wave { background:#11b1e6; } .op-orange { background:#ff7900; } .op-mtn { background:#ffcc00; color:#1b1a22; } .op-moov { background:#0066b3; }
+  section { padding:56px 0; }
+  section.band { background:var(--band); }
+  .modules { display:grid; gap:16px; margin-top:30px; }
+  .module { background:var(--surface); border:1.5px solid var(--line); border-radius:12px; overflow:hidden; }
+  .module header { background:var(--indigo-2); color:#fff; padding:14px 20px; }
+  .module header h3 { font-size:1.05rem; }
+  .module ol { list-style:none; margin:0; padding:8px 20px 12px; }
+  .module li { padding:9px 0; border-bottom:1px solid var(--line); display:flex; gap:12px; }
+  .module li:last-child { border-bottom:0; }
+  .module li b { flex:0 0 auto; min-width:2.1em; color:var(--ok); }
+  footer { font-size:.85rem; color:var(--muted); padding:28px 0 10px; }
+  .sticky { position:fixed; left:0; right:0; bottom:0; background:var(--surface); border-top:1px solid var(--line); padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px)); display:flex; align-items:center; gap:14px; z-index:20; box-shadow:0 -6px 20px rgba(0,0,0,.08); }
+  .sticky .btn { flex:1; padding:13px 16px; }
+  [hidden] { display:none !important; }
+  @media (min-width:860px) { body { padding-bottom:0; } .sticky { display:none; } .hero { padding:64px 0 72px; } .hero .grid { grid-template-columns:1.25fr .85fr; gap:56px; } .modules { grid-template-columns:1fr 1fr; } }
+  @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } .btn { transition:none; } }
+  .topbar .wrap { flex-wrap:wrap; }
+  .brand { display:inline-flex; align-items:center; gap:10px; }
+  .brand img { height:22px; width:auto; border-radius:3px; box-shadow:0 0 0 1px rgba(255,255,255,.35); }
+  .tools { display:flex; align-items:center; gap:10px; margin-left:auto; }
+  .modes { display:inline-flex; border:1px solid rgba(255,255,255,.35); border-radius:999px; overflow:hidden; }
+  .modes button { font:inherit; font-size:.8rem; font-weight:600; color:#F6EEDF; background:transparent; border:0; padding:4px 11px; cursor:pointer; }
+  .modes button[aria-pressed="true"] { background:#F6EEDF; color:var(--kola); }
+  .modes button:focus-visible { outline:3px solid var(--accent); outline-offset:-3px; }
+  @media (max-width:520px) { .modes button { padding:4px 8px; font-size:.75rem; } .tools { gap:6px; } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <span class="brand"><img id="flag" alt="" hidden><b>Formation en ligne</b></span>
+    <div class="tools">
+      <div class="modes" role="group" aria-label="Apparence de la page">
+        <button type="button" data-mode-btn="auto" aria-pressed="false">Auto</button>
+        <button type="button" data-mode-btn="light" aria-pressed="false">Clair</button>
+        <button type="button" data-mode-btn="dark" aria-pressed="false">Sombre</button>
+      </div>
+      <button class="btn" id="open-login-top" style="padding: 6px 14px; font-size: 0.85rem;">Se connecter</button>
+    </div>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap grid">
+    <div>
+      <h1>Construis une audience qui t'écoute sur TikTok et Facebook</h1>
+      <p class="lead">18 vidéos pour apprendre à créer du contenu engageant et bâtir une véritable communauté.</p>
+    </div>
+
+    <aside class="card" id="achat">
+      <div class="price"><span data-price>10 000 FCFA</span> <small>paiement unique</small></div>
+      <ul>
+        <li>18 vidéos complètes, du prologue au plan d'action</li>
+        <li>Accès sécurisé par E-mail et Mot de passe</li>
+        <li>Compatible téléphone et ordinateur</li>
+      </ul>
+      <button class="btn full" id="open-login-main">Payer maintenant</button>
+      <a class="btn wa full" data-wa href="#" style="margin-top:12px;">Écrire sur WhatsApp</a>
+    </aside>
+  </div>
+</header>
+<div class="cloth" aria-hidden="true"></div>
+
+<section class="band">
+  <div class="wrap">
+    <h2>Le programme de la formation</h2>
+    <div class="modules">
+      <div class="module">
+        <header><h3>Module 1 : Les fondations</h3></header>
+        <ol>
+          <li><b>1</b> Mon parcours</li>
+          <li><b>2</b> Les algorithmes</li>
+          <li><b>3</b> Choisir sa niche</li>
+        </ol>
+      </div>
+      <div class="module">
+        <header><h3>Module 2 : Créer du contenu</h3></header>
+        <ol>
+          <li><b>5</b> Le hook vidéo</li>
+          <li><b>6</b> Vidéos de réaction</li>
+          <li><b>8</b> Filmer et monter</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>&copy; <span data-year></span> REDBULL. Tous droits réservés.</p>
+  </div>
+</footer>
+
+<!-- Modale d'achat / inscription et connexion -->
+<dialog id="checkout">
+  <!-- Croix pour fermer la modale -->
+  <button type="button" class="modal-close-btn" id="close-modal-x" aria-label="Fermer">&times;</button>
+
+  <form id="co-form" novalidate>
+    <!-- Étape 1 : Inscription -->
+    <div id="step-1">
+      <h3 id="co-title">Obtenir mon accès</h3>
+      <p class="note">Remplis tes infos pour créer ton compte et procéder au dépôt.</p>
+      
+      <label for="co-name">Nom et Prénom</label>
+      <input id="co-name" name="name" type="text" autocomplete="name" required placeholder="Ex: Kouassi Jean">
+
+      <label for="co-email">E-mail</label>
+      <input id="co-email" name="email" type="email" autocomplete="email" required placeholder="nom@exemple.com">
+
+      <label for="co-phone">Numéro WhatsApp</label>
+      <input id="co-phone" name="phone" type="tel" autocomplete="tel" required placeholder="Ex: +225 0707070707">
+
+      <label for="co-password">Créer un mot de passe</label>
+      <div class="password-container">
+        <input id="co-password" name="password" type="password" autocomplete="new-password" required placeholder="Au moins 6 caractères">
+        <button type="button" id="toggle-pwd" class="toggle-password">👁️</button>
+      </div>
+
+      <p class="err" id="co-err" role="alert" hidden></p>
+      <div class="row">
+        <button class="btn ghost" type="button" id="co-cancel">Déjà un compte ?</button>
+        <button class="btn" type="button" id="co-next" style="flex:1">Suivant</button>
+      </div>
+    </div>
+
+    <!-- Étape 2 : Instructions de paiement -->
+    <div id="step-2" hidden>
+      <div class="payment-box">
+        <div class="payment-icon">💳</div>
+        <h3 style="margin-bottom: 4px;">Paiement Mobile Money</h3>
+        <p class="note" style="margin-bottom: 8px;">Montant à régler : <strong style="color:var(--accent);">10 000 FCFA</strong></p>
+        
+        <div class="operators-grid">
+          <span class="op-badge op-wave">Wave</span>
+          <span class="op-badge op-orange">Orange Money</span>
+          <span class="op-badge op-mtn">MTN MoMo</span>
+          <span class="op-badge op-moov">Moov Money</span>
+        </div>
+
+        <p style="font-size: 0.9rem; margin: 12px 0 4px; color: var(--muted);">Effectue ton dépôt sur le numéro :</p>
+        <div class="phone-number-display">0705146574</div>
+
+        <p style="font-size: 0.85rem; line-height: 1.4; margin-top: 10px; color: var(--ink);">
+          Une fois ton dépôt effectué, l'administrateur confirmera ton numéro et ton accès sera activé instantanément pour te connecter avec ton e-mail et ton mot de passe.
+        </p>
+      </div>
+
+      <div class="row" style="margin-top: 16px;">
+        <button class="btn ghost" type="button" id="co-back">Retour</button>
+        <a class="btn wa" id="co-confirm-wa" href="#" target="_blank" rel="noopener" style="flex:1">Prévenir sur WhatsApp</a>
+      </div>
+    </div>
+
+    <!-- Étape 3 : Connexion directe -->
+    <div id="step-login" hidden>
+      <h3>Connexion Espace Membre</h3>
+      <label for="login-email">E-mail</label>
+      <input id="login-email" type="email" required placeholder="nom@exemple.com">
+      <label for="login-password">Mot de passe</label>
+      <input id="login-password" type="password" required placeholder="••••••••">
+      <p class="err" id="login-err" hidden></p>
+      <div class="row" style="margin-top:20px;">
+        <button class="btn ghost" type="button" id="login-back">Retour</button>
+        <button class="btn" type="button" id="login-go" style="flex:1">Se connecter</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<div class="sticky">
+  <button class="btn full" id="open-login-sticky">Payer maintenant</button>
+</div>
+
+<script>
+  /* Mode sombre : auto (système), clair ou sombre */
+  (function () {
+    var root = document.documentElement, mq = window.matchMedia ? matchMedia("(prefers-color-scheme: dark)") : null, pref = "auto";
+    try { pref = localStorage.getItem("mode") || "auto"; } catch (e) {}
+    function apply() {
+      root.setAttribute("data-mode", (pref === "dark" || (pref === "auto" && mq && mq.matches)) ? "dark" : "light");
+      document.querySelectorAll("[data-mode-btn]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-mode-btn") === pref)); });
+    }
+    document.querySelectorAll("[data-mode-btn]").forEach(function (b) {
+      b.addEventListener("click", function () { pref = b.getAttribute("data-mode-btn"); try { localStorage.setItem("mode", pref); } catch (e) {} apply(); });
+    });
+    if (mq) { var f = function () { if (pref === "auto") apply(); }; if (mq.addEventListener) mq.addEventListener("change", f); else if (mq.addListener) mq.addListener(f); }
+    apply();
+  })();
+
+  /* Drapeau du visiteur d'après son adresse IP */
+  (function () {
+    var img = document.getElementById("flag");
+    function r(x, y, w, h, f) { return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="' + f + '"/>'; }
+    function star(cx, cy, R, f) { var p = [], i, a, d; for (i = 0; i < 10; i++) { a = -Math.PI / 2 + i * Math.PI / 5; d = i % 2 ? R * .382 : R; p.push((cx + d * Math.cos(a)).toFixed(2) + "," + (cy + d * Math.sin(a)).toFixed(2)); } return '<polygon points="' + p.join(" ") + '" fill="' + f + '"/>'; }
+    function vert(a, b, c) { return r(0, 0, 10, 20, a) + r(10, 0, 10, 20, b) + r(20, 0, 10, 20, c); }
+    function horiz(a, b, c) { return r(0, 0, 30, 6.67, a) + r(0, 6.67, 30, 6.66, b) + r(0, 13.33, 30, 6.67, c); }
+    function flagSvg(c) {
+      var b = null;
+      switch (c) {
+        case "CI": b = vert("#F77F00", "#FFFFFF", "#009E60"); break;
+        case "SN": b = vert("#00853F", "#FDEF42", "#E31B23") + star(15, 10, 4, "#00853F"); break;
+        case "ML": b = vert("#14B53A", "#FCD116", "#CE1126"); break;
+        case "GN": b = vert("#CE1126", "#FCD116", "#009460"); break;
+        case "NG": b = vert("#008751", "#FFFFFF", "#008751"); break;
+        case "BF": b = r(0, 0, 30, 10, "#EF2B2D") + r(0, 10, 30, 10, "#009E49") + star(15, 10, 4.6, "#FCD116"); break;
+        case "NE": b = horiz("#E05206", "#FFFFFF", "#0DB02B") + '<circle cx="15" cy="10" r="2.6" fill="#E05206"/>'; break;
+        case "GH": b = horiz("#CE1126", "#FCD116", "#006B3F") + star(15, 10, 3.6, "#000"); break;
+        case "BJ": b = r(0, 0, 30, 20, "#E8112D") + r(0, 0, 30, 10, "#FCD116") + r(0, 0, 12, 20, "#008751"); break;
+        case "TG": b = r(0, 0, 30, 20, "#006A4E") + r(0, 4, 30, 4, "#FFCE00") + r(0, 12, 30, 4, "#FFCE00") + r(0, 0, 12, 12, "#D21034") + star(6, 6, 3.4, "#FFF"); break;
+      }
+      return b ? '<svg xmlns="http://www.w3.org/2000/svg" width="30" height="20" viewBox="0 0 30 20">' + b + '</svg>' : null;
+    }
+    function setCountry(code) {
+      code = String(code || "").toUpperCase();
+      if (!/^[A-Z]{2}$/.test(code)) return false;
+      var name = code; try { name = new Intl.DisplayNames(["fr"], { type: "region" }).of(code) || code; } catch (e) {}
+      img.onerror = function () { img.hidden = true; }; img.onload = function () { img.hidden = false; };
+      img.alt = "Drapeau : " + name; img.title = name;
+      var svg = flagSvg(code);
+      if (svg) { img.removeAttribute("srcset"); img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg); }
+      else { img.src = "https://flagcdn.com/w40/" + code.toLowerCase() + ".png"; img.srcset = "https://flagcdn.com/w80/" + code.toLowerCase() + ".png 2x"; }
+      return true;
+    }
+    var sources = [["https://ipwho.is/", function (j) { return j && j.success !== false && j.country_code; }], ["https://api.country.is/", function (j) { return j && j.country; }]];
+    (function next(i) {
+      if (i >= sources.length) { try { setCountry(new Intl.Locale(navigator.language || "").region); } catch (e) {} return; }
+      fetch(sources[i][0]).then(function (r) { return r.json(); })
+        .then(function (j) { var c = sources[i][1](j); if (!(c && setCountry(c))) next(i + 1); })
+        .catch(function () { next(i + 1); });
+    })(0);
+  })();
+</script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDOiSztn34AVyFqF_ditRpZiHmeTCIwu80",
+    authDomain: "formation-lerbrb.firebaseapp.com",
+    projectId: "formation-lerbrb",
+    storageBucket: "formation-lerbrb.firebasestorage.app",
+    messagingSenderId: "623961164775",
+    appId: "1:623961164775:web:7ce4ec4762b78943b98b42"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  var WORKER_API = "https://acces-formation.privatslabs.workers.dev";
+
+  // Déjà connecté : direct vers la formation (après déconnexion, la formation renvoie ici)
+  onAuthStateChanged(auth, function(user) {
+    if (user) window.location.replace("formation.html");
+  });
+
+  var dlg = document.getElementById("checkout");
+  var step1 = document.getElementById("step-1");
+  var step2 = document.getElementById("step-2");
+  var stepLogin = document.getElementById("step-login");
+  var err = document.getElementById("co-err");
+  var pwdInput = document.getElementById("co-password");
+
+  // Fermer la modale via la Croix X
+  document.getElementById("close-modal-x").onclick = function() {
+    dlg.close();
+  };
+
+  document.getElementById("toggle-pwd").onclick = function() {
+    pwdInput.type = pwdInput.type === "password" ? "text" : "password";
+  };
+
+  function openModal() {
+    err.hidden = true;
+    step1.hidden = false;
+    step2.hidden = true;
+    stepLogin.hidden = true;
+    if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
+  }
+
+  document.getElementById("open-login-top").onclick = function() {
+    step1.hidden = true;
+    step2.hidden = true;
+    stepLogin.hidden = false;
+    if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
+  };
+  document.getElementById("open-login-main").onclick = openModal;
+  document.getElementById("open-login-sticky").onclick = openModal;
+
+  document.getElementById("co-cancel").onclick = function() {
+    step1.hidden = true;
+    stepLogin.hidden = false;
+  };
+  document.getElementById("login-back").onclick = function() {
+    stepLogin.hidden = true;
+    step1.hidden = false;
+  };
+  document.getElementById("co-back").onclick = function() {
+    step2.hidden = true;
+    step1.hidden = false;
+  };
+
+  // Enregistrement au clic sur "Suivant"
+  document.getElementById("co-next").onclick = function() {
+    var name = document.getElementById("co-name").value.trim();
+    var email = document.getElementById("co-email").value.trim();
+    var phone = document.getElementById("co-phone").value.trim();
+    var password = pwdInput.value.trim();
+
+    if (!name || !email || !phone || password.length < 6) {
+      err.textContent = "Remplis tous les champs correctement (mot de passe 6 caractères min).";
+      err.hidden = false;
+      return;
+    }
+
+    document.getElementById("co-next").disabled = true;
+    err.hidden = true;
+
+    fetch(WORKER_API + "/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, phone, password })
+    })
+    .then(r => r.json().then(j => ({ ok: r.ok, body: j })))
+    .then(res => {
+      document.getElementById("co-next").disabled = false;
+      if (res.ok) {
+        var waMsg = encodeURIComponent(`Bonjour, j'ai effectué mon inscription.\nNom : ${name}\nTél : ${phone}\nJ'ai fait le dépôt sur le 0705146574, veuillez valider mon accès.`);
+        document.getElementById("co-confirm-wa").href = "https://wa.me/212782907510?text=" + waMsg;
+        step1.hidden = true;
+        step2.hidden = false;
+      } else {
+        err.textContent = res.body.error || "Erreur lors de l'inscription.";
+        err.hidden = false;
+      }
+    })
+    .catch(() => {
+      document.getElementById("co-next").disabled = false;
+      err.textContent = "Erreur de connexion au serveur.";
+      err.hidden = false;
+    });
+  };
+
+  // Connexion membre
+  document.getElementById("login-go").onclick = function() {
+    var email = document.getElementById("login-email").value.trim();
+    var password = document.getElementById("login-password").value.trim();
+    var loginErr = document.getElementById("login-err");
+
+    signInWithEmailAndPassword(auth, email, password)
+      .then(() => { window.location.replace("formation.html"); })
+      .catch((e) => {
+        loginErr.textContent = "E-mail ou mot de passe incorrect.";
+        loginErr.hidden = false;
+      });
+  };
+</script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Administration - Gestion des Accès</title>
+<style>
+  :root { --bg:#121316; --surface:#1F2026; --ink:#EDEBEF; --muted:#A9A5B0; --line:#34353E; --accent:#E0307F; --ok:#25D366; --err:#E5484D; --font: "Segoe UI", Roboto, sans-serif; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:var(--font); background:var(--bg); color:var(--ink); padding:20px; line-height:1.5; }
+  .wrap { max-width:600px; margin:40px auto; }
+  h1 { font-size:1.5rem; margin-bottom:20px; color:#fff; text-align:center; }
+  .box { background:var(--surface); border:1.5px solid var(--line); border-radius:12px; padding:24px; margin-bottom:20px; }
+  label { display:block; font-weight:700; font-size:0.9rem; margin-bottom:8px; color:var(--muted); }
+  input { width:100%; padding:12px; border-radius:8px; border:1.5px solid var(--line); background:var(--bg); color:var(--ink); font-size:1rem; margin-bottom:16px; }
+  input:focus { outline:3px solid var(--accent); }
+  .row { display:flex; gap:10px; }
+  .btn { flex:1; display:inline-flex; align-items:center; justify-content:center; background:var(--accent); color:#fff; font:inherit; font-weight:700; padding:14px; border-radius:8px; border:0; cursor:pointer; }
+  .btn.allow { background: var(--ok); color: #06240F; }
+  .btn.block { background: var(--err); color: #fff; }
+  .btn:hover { opacity:0.9; }
+  .msg { margin-top:16px; font-weight:600; text-align:center; }
+  .msg.success { color: var(--ok); }
+  .msg.error { color: var(--err); }
+  [hidden] { display:none !important; }
+
+  .cloth{height:18px;background-color:#062F39;background-image:linear-gradient(135deg,#E0307F 25%,transparent 25%),linear-gradient(225deg,#E0307F 25%,transparent 25%),linear-gradient(315deg,#E0307F 25%,transparent 25%),linear-gradient(45deg,#E0307F 25%,transparent 25%);background-size:18px 18px;background-position:-9px 0,-9px 0,0 0,0 0;}
+  .top{position:relative;overflow:hidden;margin:-20px -20px 0;padding:34px 20px 30px;text-align:center;background:#0B4A57;}
+  .top::before{content:"";position:absolute;right:-100px;top:-120px;width:320px;height:320px;border-radius:50%;background:repeating-radial-gradient(circle,transparent 0 16px,rgba(255,255,255,.07) 16px 21px);}
+  .top h1{position:relative;margin:0;color:#fff}
+  .wrap{margin-top:28px}
+  .btn{box-shadow:0 2px 0 rgba(0,0,0,.25);}
+</style>
+</head>
+<body>
+<div class="top"><h1>Administration des accès</h1></div>
+<div class="cloth" aria-hidden="true" style="margin:0 -20px"></div>
+<div class="wrap">
+
+  <!-- Étape 1 : Clé Admin -->
+  <div class="box" id="auth-box">
+    <label for="admin-key">Mot de passe / Clé Admin</label>
+    <input id="admin-key" type="password" placeholder="Entre ton ADMIN_KEY">
+    <button class="btn" id="save-key" style="width:100%;">Valider la clé</button>
+  </div>
+
+  <!-- Étape 2 : Gestion du numéro -->
+  <div class="box" id="admin-box" hidden>
+    <label for="phone-input">Numéro de téléphone du client</label>
+    <input id="phone-input" type="text" placeholder="Ex: 0705146574 ou +225...">
+
+    <div class="row">
+      <button class="btn allow" id="btn-allow">Autoriser l'accès</button>
+      <button class="btn block" id="btn-block">Bloquer l'accès</button>
+    </div>
+
+    <p class="msg" id="status-msg" hidden></p>
+    <p style="margin:18px 0 0;text-align:center"><button type="button" id="btn-migrate" style="background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font:inherit;font-size:.85rem">Mettre à jour les anciens numéros (une seule fois)</button></p>
+  </div>
+</div>
+
+<script>
+  var WORKER_API = "https://acces-formation.privatslabs.workers.dev"; // Remplace par ton URL Worker
+  var ADMIN_STORAGE = "my_admin_secret_key";
+
+  var $ = function(id) { return document.getElementById(id); };
+
+  $("save-key").onclick = function() {
+    var key = $("admin-key").value.trim();
+    if (key.length < 2) { alert("Clé trop courte."); return; }
+    sessionStorage.setItem(ADMIN_STORAGE, key);
+    $("auth-box").hidden = true;
+    $("admin-box").hidden = false;
+  };
+
+  if (sessionStorage.getItem(ADMIN_STORAGE)) {
+    $("admin-key").value = sessionStorage.getItem(ADMIN_STORAGE);
+    $("auth-box").hidden = true;
+    $("admin-box").hidden = false;
+  }
+
+  function updateAccess(isAllowed) {
+    var phone = $("phone-input").value.trim();
+    var adminKey = sessionStorage.getItem(ADMIN_STORAGE);
+    var msgEl = $("status-msg");
+
+    if (!phone) {
+      msgEl.textContent = "Veuillez entrer un numéro de téléphone.";
+      msgEl.className = "msg error";
+      msgEl.hidden = false;
+      return;
+    }
+
+    msgEl.textContent = "Traitement en cours...";
+    msgEl.className = "msg";
+    msgEl.hidden = false;
+
+    fetch(WORKER_API + "/admin/update-access", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Admin-Key": adminKey
+      },
+      body: JSON.stringify({ phone: phone, acces: isAllowed })
+    })
+    .then(r => r.json().then(j => ({ ok: r.ok, body: j })))
+    .then(res => {
+      if (res.ok) {
+        msgEl.textContent = res.body.message || (isAllowed ? "Accès autorisé avec succès !" : "Accès bloqué avec succès !");
+        msgEl.className = "msg success";
+      } else {
+        msgEl.textContent = "Erreur : " + (res.body.error || "Numéro introuvable");
+        msgEl.className = "msg error";
+      }
+      msgEl.hidden = false;
+    })
+    .catch(e => {
+      msgEl.textContent = "Erreur de connexion au serveur.";
+      msgEl.className = "msg error";
+      msgEl.hidden = false;
+    });
+  }
+
+  $("btn-migrate").onclick = function() {
+    var msgEl = $("status-msg");
+    msgEl.textContent = "Mise à jour en cours..."; msgEl.className = "msg"; msgEl.hidden = false;
+    fetch(WORKER_API + "/admin/migrate-phones", { method: "POST", headers: { "X-Admin-Key": sessionStorage.getItem(ADMIN_STORAGE) } })
+      .then(function(r) { return r.json().then(function(j) { return { ok: r.ok, body: j }; }); })
+      .then(function(res) { msgEl.textContent = res.ok ? res.body.message : "Erreur : " + (res.body.error || "échec"); msgEl.className = "msg " + (res.ok ? "success" : "error"); })
+      .catch(function() { msgEl.textContent = "Erreur de connexion au serveur."; msgEl.className = "msg error"; });
+  };
+  $("btn-allow").onclick = function() { updateAccess(true); };
+  $("btn-block").onclick = function() { updateAccess(false); };
+</script>
+</body>
+</html>
