@@ -193,6 +193,11 @@
         <button type="button" id="toggle-pwd" class="toggle-password">👁️</button>
       </div>
 
+      <div style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden" aria-hidden="true">
+        <label for="co-website">Ne pas remplir</label>
+        <input id="co-website" name="website" type="text" tabindex="-1" autocomplete="off">
+      </div>
+      <div id="ts-box" style="margin-top:14px;display:flex;justify-content:center"></div>
       <p class="err" id="co-err" role="alert" hidden></p>
       <div class="row">
         <button class="btn ghost" type="button" id="co-cancel">Déjà un compte ?</button>
@@ -307,6 +312,8 @@
     })(0);
   })();
 </script>
+<script>window.onTsLoad = function () { window.__tsReady = true; window.dispatchEvent(new Event("ts-ready")); };</script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTsLoad" async defer></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -323,6 +330,18 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   var WORKER_API = "https://acces-formation.privatslabs.workers.dev";
+
+  // Anti-spam : colle ici ta clé publique Cloudflare Turnstile (laisse vide pour désactiver)
+  var TURNSTILE_SITE_KEY = "0x4AAAAAAFY8XHS9vnuC3lSS";
+  var tsId = null;
+  function renderTs() {
+    if (!TURNSTILE_SITE_KEY || tsId !== null || !window.turnstile) return;
+    tsId = turnstile.render("#ts-box", { sitekey: TURNSTILE_SITE_KEY, theme: "auto" });
+  }
+  function tsToken() { return tsId !== null ? turnstile.getResponse(tsId) : ""; }
+  function tsReset() { if (tsId !== null) turnstile.reset(tsId); }
+  window.addEventListener("ts-ready", renderTs);
+  if (window.__tsReady) renderTs();
 
   // Déjà connecté : direct vers la formation (après déconnexion, la formation renvoie ici)
   onAuthStateChanged(auth, function(user) {
@@ -388,16 +407,23 @@
       return;
     }
 
+    if (TURNSTILE_SITE_KEY && !tsToken()) {
+      err.textContent = "Confirme que tu n'es pas un robot (case ci-dessus).";
+      err.hidden = false;
+      return;
+    }
+
     document.getElementById("co-next").disabled = true;
     err.hidden = true;
 
     fetch(WORKER_API + "/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, phone, password })
+      body: JSON.stringify({ name, email, phone, password, website: document.getElementById("co-website").value, turnstile: tsToken() })
     })
     .then(r => r.json().then(j => ({ ok: r.ok, body: j })))
     .then(res => {
+      tsReset();
       document.getElementById("co-next").disabled = false;
       if (res.ok) {
         var waMsg = encodeURIComponent(`Bonjour, j'ai effectué mon inscription.\nNom : ${name}\nTél : ${phone}\nJ'ai fait le dépôt sur le 0705146574, veuillez valider mon accès.`);
@@ -410,6 +436,7 @@
       }
     })
     .catch(() => {
+      tsReset();
       document.getElementById("co-next").disabled = false;
       err.textContent = "Erreur de connexion au serveur.";
       err.hidden = false;

@@ -3,7 +3,7 @@
  */
 
 const MAX_DEVICES = 3;
-const LINK_LIFETIME = 4 * 3600;
+const LINK_LIFETIME = 30 * 60; // 30 min (la page renouvelle les liens toutes les 20 min)
 
 const LESSONS = [
   { n: 0,  module: "Introduction", title: "Prologue : bienvenue dans la formation", video: "" },
@@ -65,6 +65,17 @@ async function fsFetch(env, url, opts = {}) {
   const t = await googleToken(env);
   return fetch(url, { ...opts, headers: { ...(opts.headers || {}), Authorization: "Bearer " + t } });
 }
+/* Limite de requêtes par IP (nécessite un espace KV lié sous le nom LIMITS ; sans KV, pas de limite) */
+async function limited(env, request, name, max, windowSec) {
+  if (!env.LIMITS) return false;
+  const ip = request.headers.get("CF-Connecting-IP") || "?";
+  const k = "rl:" + name + ":" + ip + ":" + Math.floor(Date.now() / (windowSec * 1000));
+  const n = Number((await env.LIMITS.get(k)) || 0);
+  if (n >= max) return true;
+  await env.LIMITS.put(k, String(n + 1), { expirationTtl: Math.max(60, windowSec * 2) });
+  return false;
+}
+const TOO_MANY = { error: "Trop de tentatives, réessaie dans quelques minutes." };
 const normPhone = (p) => String(p || "").replace(/\D/g, "").replace(/^00/, "");
 // Clé de recherche : les 8 derniers chiffres, identique avec ou sans indicatif (+225, 00225…)
 const phoneKey = (p) => normPhone(p).slice(-8);
@@ -91,6 +102,12 @@ export default {
     try {
       const p = url.pathname;
 
+      if (p === "/register" && request.method === "POST") {
+        if (await limited(env, request, "reg", 10, 3600)) return json(TOO_MANY, 429);
+      }
+      if (p.startsWith("/admin/") && request.method === "POST") {
+        if (await limited(env, request, "adm", 30, 600)) return json(TOO_MANY, 429);
+      }
       if (p === "/register" && request.method === "POST") return json(...(await registerUser(request, env)));
       if (p === "/videos" && request.method === "GET") return json(...(await videos(request, env)));
       if (p === "/admin/migrate-phones" && request.method === "POST") return json(...(await migratePhones(request, env)));
@@ -111,6 +128,19 @@ async function registerUser(request, env) {
   const email = String(b.email || "").trim().toLowerCase();
   const phone = normPhone(b.phone);
   const password = String(b.password || "");
+
+  // Anti-spam 1 : champ piège rempli = robot (on fait semblant que tout va bien)
+  if (String(b.website || "").trim()) return [{ ok: true, message: "Compte créé avec succès." }, 200];
+  if (email.length > 120 || password.length > 100) return [{ error: "Informations invalides." }, 400];
+
+  // Anti-spam 2 : Cloudflare Turnstile (actif dès que le secret TURNSTILE_SECRET est défini)
+  if (env.TURNSTILE_SECRET) {
+    const ts = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      body: new URLSearchParams({ secret: env.TURNSTILE_SECRET, response: String(b.turnstile || ""), remoteip: request.headers.get("CF-Connecting-IP") || "" }),
+    }).then((r) => r.json()).catch(() => ({}));
+    if (!ts.success) return [{ error: "Vérification anti-robot échouée, réessaie." }, 400];
+  }
 
   if (!email || !/^[^@\s]+@[^@\s]+$/.test(email) || password.length < 6 || phone.length < 8 || name.length < 2 || name.length > 80) {
     return [{ error: "Informations invalides ou mot de passe trop court." }, 400];

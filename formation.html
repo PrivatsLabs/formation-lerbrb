@@ -149,13 +149,23 @@
       .then(function (res) {
         if (res.status === 200) { 
           $("logout").hidden = false;
-          render(res.body.lessons); 
+          LESSONS = res.body.lessons; currentUser = user; loadedAt = Date.now(); render(LESSONS); 
           return; 
         }
 
         // ACCÈS REFUSÉ (ex: acces: false) -> DÉCONNEXION ET REDIRECTION IMMÉDIATE
+        var code = (res.body && res.body.error) || ("http-" + res.status);
+        var MSG = {
+          "not-paid": "Votre compte n'est pas encore validé par l'administrateur.",
+          "devices": "Limite de 3 appareils atteinte pour ce compte. Contactez l'administrateur.",
+          "invalid-token": "Session expirée. Reconnectez-vous.",
+          "no-access": "Session expirée. Reconnectez-vous.",
+          "bad-device": "Appareil non reconnu. Videz le cache du navigateur et réessayez."
+        };
+        var text = MSG[code] || ("Erreur serveur (" + res.status + "). Réessayez dans un instant ou contactez l'administrateur.");
+        console.warn("Accès /videos refusé :", res.status, code);
         signOut(auth).then(function() {
-          console.log("Accès refusé : Votre compte n'est pas encore validé par l'administrateur.");
+          alert("Accès refusé : " + text);
           window.location.replace("index.html");
         });
       })
@@ -165,6 +175,26 @@
         });
       });
   });
+
+  /* Les liens vidéo expirent après 30 min : on les renouvelle avant (au clic, et toutes les 20 min) */
+  var LESSONS = [], loadedAt = 0, currentUser = null, FRESH = 20 * 60 * 1000;
+  function refreshLinks() {
+    if (!currentUser) return Promise.resolve();
+    return currentUser.getIdToken(true)
+      .then(function (t) { return fetch(CONFIG.api + "/videos", { headers: { "Authorization": "Bearer " + t, "X-Device": deviceId() }, cache: "no-store" }); })
+      .then(function (r) {
+        if (r.status === 401 || r.status === 403) { signOut(auth).then(function () { window.location.replace("index.html"); }); return null; }
+        return r.ok ? r.json() : null;
+      })
+      .then(function (j) {
+        if (!j || !j.lessons) return;
+        j.lessons.forEach(function (n) { var o = LESSONS.find(function (x) { return x.n === n.n; }); if (o) o.url = n.url; });
+        loadedAt = Date.now();
+      })
+      .catch(function () {});
+  }
+  function fresh() { return Date.now() - loadedAt > FRESH ? refreshLinks() : Promise.resolve(); }
+  setInterval(refreshLinks, FRESH);
 
   function render(lessons) {
     $("state").hidden = true; 
@@ -190,7 +220,7 @@
       b.appendChild(n); 
       b.appendChild(t);
       if (!l.url) { b.disabled = true; }
-      b.addEventListener("click", function () { play(l, b, buttons); });
+      b.addEventListener("click", function () { fresh().then(function () { play(l, b, buttons); }); });
       list.appendChild(b); 
       buttons.push(b);
     });
