@@ -98,6 +98,33 @@
   .modes button[aria-pressed="true"] { background:#F6EEDF; color:var(--kola); }
   .modes button:focus-visible { outline:3px solid var(--accent); outline-offset:-3px; }
   @media (max-width:520px) { .modes button { padding:4px 8px; font-size:.75rem; } .tools { gap:6px; } }
+  .phone-row { display:flex; gap:8px; position:relative; }
+  .phone-row > input { flex:1; min-width:0; }
+  .cc-wrap { position:relative; flex:0 0 auto; }
+  .cc-btn { display:flex; align-items:center; gap:8px; height:100%; font:inherit; font-weight:600; padding:0 12px; border-radius:10px; border:1.5px solid var(--line); background:var(--bg); color:var(--ink); cursor:pointer; white-space:nowrap; }
+  .cc-btn:focus-visible { outline:3px solid var(--accent); outline-offset:1px; }
+  .cc-btn img,.cc-list img { width:24px; height:16px; object-fit:cover; border-radius:3px; box-shadow:0 0 0 1px rgba(128,128,128,.35); flex:none; }
+  .cc-caret { font-size:.7rem; color:var(--muted); }
+  .cc-list { position:absolute; top:calc(100% + 6px); left:0; z-index:30; width:min(300px,calc(100vw - 80px)); max-height:240px; overflow-y:auto; margin:0; padding:6px; list-style:none; background:var(--surface); border:1.5px solid var(--line); border-radius:12px; box-shadow:0 14px 36px rgba(0,0,0,.35); }
+  .cc-list li { display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px; cursor:pointer; font-size:.95rem; }
+  .cc-list li:hover,.cc-list li[aria-selected="true"] { background:var(--band); }
+  .cc-list li b { margin-left:auto; color:var(--muted); font-weight:600; font-variant-numeric:tabular-nums; }
+  .live-pill { display:inline-flex; align-items:center; gap:9px; padding:6px 14px; margin-bottom:14px; border-radius:999px; background:rgba(37,211,102,.12); border:1px solid rgba(37,211,102,.45); font-size:.82rem; font-weight:700; }
+  .led { flex:none; width:10px; height:10px; border-radius:50%; background:#25D366; box-shadow:0 0 8px 2px rgba(37,211,102,.7); animation:ledPulse 1.6s ease-in-out infinite; }
+  @keyframes ledPulse { 0%,100% { opacity:1; box-shadow:0 0 6px 1px rgba(37,211,102,.6); } 50% { opacity:.5; box-shadow:0 0 14px 4px rgba(37,211,102,.95); } }
+  #toast-host { position:fixed; top:calc(14px + env(safe-area-inset-top,0px)); left:14px; right:14px; z-index:100; display:flex; flex-direction:column; align-items:flex-end; gap:10px; pointer-events:none; }
+  .toast { pointer-events:auto; position:relative; width:min(430px,100%); display:flex; gap:14px; align-items:flex-start; padding:16px 44px 16px 16px; background:var(--surface); color:var(--ink); border:1px solid var(--line); border-left:5px solid #25D366; border-radius:16px; box-shadow:0 22px 50px -12px rgba(0,0,0,.5); animation:toastIn .45s cubic-bezier(.2,.9,.3,1.2); }
+  .toast.out { animation:toastOut .25s ease forwards; }
+  .toast-ico { flex:none; width:40px; height:40px; border-radius:50%; background:#25D366; color:#06240F; display:grid; place-items:center; font-weight:800; font-size:1.25rem; }
+  .toast strong { display:block; font-size:1.05rem; }
+  .toast p { margin:2px 0 12px; font-size:.92rem; color:var(--muted); }
+  .toast .btn { padding:10px 18px; font-size:.95rem; }
+  .toast-close { position:absolute; top:8px; right:8px; width:30px; height:30px; border:0; border-radius:50%; background:transparent; color:var(--muted); font-size:1.4rem; line-height:1; cursor:pointer; }
+  .toast-close:hover { background:var(--band); }
+  .toast-close:focus-visible { outline:3px solid var(--accent); }
+  @keyframes toastIn { from { transform:translateY(-24px) scale(.96); opacity:0; } to { transform:none; opacity:1; } }
+  @keyframes toastOut { to { transform:translateX(30px); opacity:0; } }
+  @media (prefers-reduced-motion:reduce) { .led,.toast,.toast.out { animation:none; } }
 </style>
 </head>
 <body>
@@ -179,23 +206,31 @@
       <p class="note">Remplis tes infos pour créer ton compte et procéder au dépôt.</p>
       
       <label for="co-name">Nom et Prénom</label>
-      <input id="co-name" name="name" type="text" autocomplete="name" required placeholder="Ex: Kouassi Jean">
+      <input id="co-name" name="name" type="text" autocomplete="name" required minlength="2" maxlength="60" placeholder="Ex: Kouassi Jean">
 
       <label for="co-email">E-mail</label>
-      <input id="co-email" name="email" type="email" autocomplete="email" required placeholder="nom@exemple.com">
+      <input id="co-email" name="email" type="email" autocomplete="email" required maxlength="120" placeholder="nom@exemple.com">
 
       <label for="co-phone">Numéro WhatsApp</label>
-      <input id="co-phone" name="phone" type="tel" autocomplete="tel" required placeholder="Ex: +225 0707070707">
+      <div class="phone-row">
+        <div class="cc-wrap">
+          <button type="button" class="cc-btn" id="cc-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="Choisir le pays">
+            <img id="cc-flag" alt="" width="24" height="16"><span id="cc-dial">+225</span><span class="cc-caret" aria-hidden="true">▾</span>
+          </button>
+          <ul class="cc-list" id="cc-list" role="listbox" aria-label="Pays" hidden></ul>
+        </div>
+        <input id="co-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel-national" required minlength="6" maxlength="15" placeholder="Ton numéro">
+      </div>
 
       <label for="co-password">Créer un mot de passe</label>
       <div class="password-container">
-        <input id="co-password" name="password" type="password" autocomplete="new-password" required placeholder="Au moins 6 caractères">
+        <input id="co-password" name="password" type="password" autocomplete="new-password" required minlength="6" maxlength="64" placeholder="Au moins 6 caractères">
         <button type="button" id="toggle-pwd" class="toggle-password">👁️</button>
       </div>
 
       <div style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden" aria-hidden="true">
         <label for="co-website">Ne pas remplir</label>
-        <input id="co-website" name="website" type="text" tabindex="-1" autocomplete="off">
+        <input id="co-website" name="website" type="text" tabindex="-1" autocomplete="off" maxlength="50">
       </div>
       <div id="ts-box" style="margin-top:14px;display:flex;justify-content:center"></div>
       <p class="err" id="co-err" role="alert" hidden></p>
@@ -208,6 +243,7 @@
     <!-- Étape 2 : Instructions de paiement -->
     <div id="step-2" hidden>
       <div class="payment-box">
+        <div class="live-pill" role="status"><span class="led" aria-hidden="true"></span><span>Actif · en attente de ton dépôt</span></div>
         <div class="payment-icon">💳</div>
         <h3 style="margin-bottom: 4px;">Paiement Mobile Money</h3>
         <p class="note" style="margin-bottom: 8px;">Montant à régler : <strong style="color:var(--accent);">10 000 FCFA</strong></p>
@@ -237,9 +273,9 @@
     <div id="step-login" hidden>
       <h3>Connexion Espace Membre</h3>
       <label for="login-email">E-mail</label>
-      <input id="login-email" type="email" required placeholder="nom@exemple.com">
+      <input id="login-email" type="email" autocomplete="email" required maxlength="120" placeholder="nom@exemple.com">
       <label for="login-password">Mot de passe</label>
-      <input id="login-password" type="password" required placeholder="••••••••">
+      <input id="login-password" type="password" autocomplete="current-password" required maxlength="64" placeholder="••••••••">
       <p class="err" id="login-err" hidden></p>
       <div class="row" style="margin-top:20px;">
         <button class="btn ghost" type="button" id="login-back">Retour</button>
@@ -248,6 +284,8 @@
     </div>
   </form>
 </dialog>
+
+<div id="toast-host" aria-live="polite"></div>
 
 <div class="sticky">
   <button class="btn full" id="open-login-sticky">Payer maintenant</button>
@@ -292,9 +330,11 @@
       }
       return b ? '<svg xmlns="http://www.w3.org/2000/svg" width="30" height="20" viewBox="0 0 30 20">' + b + '</svg>' : null;
     }
+    window.flagSvg = flagSvg;
     function setCountry(code) {
       code = String(code || "").toUpperCase();
       if (!/^[A-Z]{2}$/.test(code)) return false;
+      if (window.pickCountry) window.pickCountry(code);
       var name = code; try { name = new Intl.DisplayNames(["fr"], { type: "region" }).of(code) || code; } catch (e) {}
       img.onerror = function () { img.hidden = true; }; img.onload = function () { img.hidden = false; };
       img.alt = "Drapeau : " + name; img.title = name;
@@ -310,6 +350,35 @@
         .then(function (j) { var c = sources[i][1](j); if (!(c && setCountry(c))) next(i + 1); })
         .catch(function () { next(i + 1); });
     })(0);
+  })();
+</script>
+<script>
+  /* Sélecteur de pays (drapeau + indicatif) pour le numéro WhatsApp */
+  (function () {
+    var C = [["CI","225","Côte d'Ivoire"],["SN","221","Sénégal"],["ML","223","Mali"],["BF","226","Burkina Faso"],["TG","228","Togo"],["BJ","229","Bénin"],["NE","227","Niger"],["GN","224","Guinée"],["GH","233","Ghana"],["NG","234","Nigeria"],["CM","237","Cameroun"],["GA","241","Gabon"],["CG","242","Congo"],["CD","243","RD Congo"],["TD","235","Tchad"],["CF","236","Centrafrique"],["MR","222","Mauritanie"],["GM","220","Gambie"],["GW","245","Guinée-Bissau"],["SL","232","Sierra Leone"],["LR","231","Liberia"],["CV","238","Cap-Vert"],["MA","212","Maroc"],["DZ","213","Algérie"],["TN","216","Tunisie"],["FR","33","France"],["BE","32","Belgique"],["CH","41","Suisse"],["CA","1","Canada"],["US","1","États-Unis"],["GB","44","Royaume-Uni"]];
+    var cur = C[0], chose = false;
+    var btn = document.getElementById("cc-btn"), list = document.getElementById("cc-list"), flag = document.getElementById("cc-flag"), dial = document.getElementById("cc-dial");
+    function src(code) {
+      var svg = window.flagSvg && window.flagSvg(code);
+      return svg ? "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg) : "https://flagcdn.com/w40/" + code.toLowerCase() + ".png";
+    }
+    function show(c) { cur = c; flag.src = src(c[0]); flag.alt = "Drapeau : " + c[2]; dial.textContent = "+" + c[1]; list.querySelectorAll("li").forEach(function (li) { li.setAttribute("aria-selected", String(li.dataset.c === c[0])); }); }
+    function close() { list.hidden = true; btn.setAttribute("aria-expanded", "false"); }
+    C.forEach(function (c) {
+      var li = document.createElement("li"); li.setAttribute("role", "option"); li.dataset.c = c[0];
+      var im = document.createElement("img"); im.alt = ""; im.src = src(c[0]); im.onerror = function () { im.style.visibility = "hidden"; };
+      var n = document.createElement("span"); n.textContent = c[2];
+      var d = document.createElement("b"); d.textContent = "+" + c[1];
+      li.appendChild(im); li.appendChild(n); li.appendChild(d);
+      li.addEventListener("click", function () { chose = true; show(c); close(); document.getElementById("co-phone").focus(); });
+      list.appendChild(li);
+    });
+    btn.addEventListener("click", function () { var open = list.hidden; list.hidden = !open; btn.setAttribute("aria-expanded", String(open)); });
+    document.addEventListener("click", function (e) { if (!list.hidden && !e.target.closest(".cc-wrap")) close(); });
+    document.getElementById("checkout").addEventListener("cancel", function (e) { if (!list.hidden) { e.preventDefault(); close(); } });
+    window.pickCountry = function (code) { if (chose) return; for (var i = 0; i < C.length; i++) { if (C[i][0] === code) { show(C[i]); return; } } };
+    window.getDial = function () { return cur[1]; };
+    show(cur);
   })();
 </script>
 <script>window.onTsLoad = function () { window.__tsReady = true; window.dispatchEvent(new Event("ts-ready")); };</script>
@@ -343,10 +412,57 @@
   window.addEventListener("ts-ready", renderTs);
   if (window.__tsReady) renderTs();
 
-  // Déjà connecté : direct vers la formation (après déconnexion, la formation renvoie ici)
-  onAuthStateChanged(auth, function(user) {
-    if (user) window.location.replace("formation.html");
+  /* Suivi de l'accès : si déjà validé -> formation ; sinon on attend et on prévient dès que l'admin active l'accès */
+  var pending = false, pollTimer = null;
+
+  function showAccessToast() {
+    var host = document.getElementById("toast-host");
+    if (host.querySelector(".toast")) return;
+    var t = document.createElement("div");
+    t.className = "toast";
+    t.setAttribute("role", "status");
+    t.innerHTML = '<span class="toast-ico" aria-hidden="true">&#10003;</span>' +
+      '<div><strong>Accès activé !</strong><p>Ton paiement est confirmé. Tu peux commencer la formation dès maintenant.</p>' +
+      '<a class="btn wa" href="formation.html">Accéder à la formation</a></div>' +
+      '<button type="button" class="toast-close" aria-label="Fermer la notification">&times;</button>';
+    t.querySelector(".toast-close").onclick = function () { t.classList.add("out"); setTimeout(function () { t.remove(); }, 260); };
+    host.appendChild(t);
+    try { if (navigator.vibrate) navigator.vibrate([120, 60, 120]); } catch (e) {}
+  }
+
+  function stopPolling() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
+  function startPolling() {
+    if (pollTimer) return;
+    pollTimer = setInterval(function () { if (!document.hidden) checkAccess(); }, 15000);
+  }
+
+  function checkAccess() {
+    var u = auth.currentUser;
+    if (!u) return Promise.resolve();
+    return u.getIdToken()
+      .then(function (t) { return fetch(WORKER_API + "/me", { headers: { "Authorization": "Bearer " + t }, cache: "no-store" }); })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) {
+        if (!j) return;
+        if (j.acces === true) {
+          stopPolling();
+          if (!pending) { window.location.replace("formation.html"); return; }
+          pending = false;
+          var d = document.getElementById("checkout");
+          if (d && d.open) d.close();
+          showAccessToast();
+        } else {
+          pending = true;
+          startPolling();
+        }
+      })
+      .catch(function () {});
+  }
+
+  onAuthStateChanged(auth, function (user) {
+    if (user) { checkAccess(); } else { pending = false; stopPolling(); }
   });
+  document.addEventListener("visibilitychange", function () { if (!document.hidden && pending) checkAccess(); });
 
   var dlg = document.getElementById("checkout");
   var step1 = document.getElementById("step-1");
@@ -398,10 +514,13 @@
   document.getElementById("co-next").onclick = function() {
     var name = document.getElementById("co-name").value.trim();
     var email = document.getElementById("co-email").value.trim();
-    var phone = document.getElementById("co-phone").value.trim();
+    var dialCode = window.getDial ? window.getDial() : "";
+    var local = document.getElementById("co-phone").value.replace(/\D/g, "").replace(/^00/, "");
+    var phone = (dialCode && local.indexOf(dialCode) === 0 && local.length >= dialCode.length + 8) ? local : dialCode + local;
     var password = pwdInput.value.trim();
 
-    if (!name || !email || !phone || password.length < 6) {
+    var fieldsOk = ["co-name", "co-email", "co-phone", "co-password"].every(function (id) { return document.getElementById(id).reportValidity(); });
+    if (!fieldsOk || !name || !email || local.length < 6 || password.length < 6) {
       err.textContent = "Remplis tous les champs correctement (mot de passe 6 caractères min).";
       err.hidden = false;
       return;
@@ -426,10 +545,12 @@
       tsReset();
       document.getElementById("co-next").disabled = false;
       if (res.ok) {
-        var waMsg = encodeURIComponent(`Bonjour, j'ai effectué mon inscription.\nNom : ${name}\nTél : ${phone}\nJ'ai fait le dépôt sur le 0705146574, veuillez valider mon accès.`);
+        var waMsg = encodeURIComponent(`Bonjour, j'ai effectué mon inscription.\nNom : ${name}\nTél : +${phone}\nJ'ai fait le dépôt sur le 0705146574, veuillez valider mon accès.`);
         document.getElementById("co-confirm-wa").href = "https://wa.me/212782907510?text=" + waMsg;
         step1.hidden = true;
         step2.hidden = false;
+        // Connexion silencieuse : permet de te prévenir ici dès que l'accès est activé
+        signInWithEmailAndPassword(auth, email, password).catch(function () {});
       } else {
         err.textContent = res.body.error || "Erreur lors de l'inscription.";
         err.hidden = false;
@@ -449,8 +570,16 @@
     var password = document.getElementById("login-password").value.trim();
     var loginErr = document.getElementById("login-err");
 
+    loginErr.style.color = "";
     signInWithEmailAndPassword(auth, email, password)
-      .then(() => { window.location.replace("formation.html"); })
+      .then(() => checkAccess())
+      .then(() => {
+        if (pending) {
+          loginErr.textContent = "Ton compte n'est pas encore validé. Garde cette page ouverte : tu seras prévenu ici dès que ton accès sera activé.";
+          loginErr.style.color = "var(--muted)";
+          loginErr.hidden = false;
+        }
+      })
       .catch((e) => {
         loginErr.textContent = "E-mail ou mot de passe incorrect.";
         loginErr.hidden = false;

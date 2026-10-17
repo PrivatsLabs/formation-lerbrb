@@ -81,7 +81,7 @@ const normPhone = (p) => String(p || "").replace(/\D/g, "").replace(/^00/, "");
 const phoneKey = (p) => normPhone(p).slice(-8);
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const allowed = (env.ALLOWED_ORIGIN || "").split(",").map((s) => s.trim()).filter(Boolean);
     const origin = request.headers.get("Origin") || "";
@@ -108,7 +108,8 @@ export default {
       if (p.startsWith("/admin/") && request.method === "POST") {
         if (await limited(env, request, "adm", 30, 600)) return json(TOO_MANY, 429);
       }
-      if (p === "/register" && request.method === "POST") return json(...(await registerUser(request, env)));
+      if (p === "/register" && request.method === "POST") return json(...(await registerUser(request, env, ctx)));
+      if (p === "/me" && request.method === "GET") return json(...(await me(request, env)));
       if (p === "/videos" && request.method === "GET") return json(...(await videos(request, env)));
       if (p === "/admin/migrate-phones" && request.method === "POST") return json(...(await migratePhones(request, env)));
       if (p === "/admin/update-access" && request.method === "POST") return json(...(await adminUpdateAccess(request, env)));
@@ -122,7 +123,7 @@ export default {
 };
 
 /* ---------- Inscription publique (Crée Auth + Firestore avec acces: false) ---------- */
-async function registerUser(request, env) {
+async function registerUser(request, env, ctx) {
   const b = await request.json().catch(() => ({}));
   const name = String(b.name || "").trim();
   const email = String(b.email || "").trim().toLowerCase();
@@ -139,7 +140,11 @@ async function registerUser(request, env) {
       method: "POST",
       body: new URLSearchParams({ secret: env.TURNSTILE_SECRET, response: String(b.turnstile || ""), remoteip: request.headers.get("CF-Connecting-IP") || "" }),
     }).then((r) => r.json()).catch(() => ({}));
-    if (!ts.success) return [{ error: "Vérification anti-robot échouée, réessaie." }, 400];
+    if (!ts.success) {
+      const codes = (ts["error-codes"] || []).join(",") || "inconnu";
+      console.log("turnstile refusé:", codes);
+      return [{ error: "Vérification anti-robot échouée, réessaie. (code : " + codes + ")" }, 400];
+    }
   }
 
   if (!email || !/^[^@\s]+@[^@\s]+$/.test(email) || password.length < 6 || phone.length < 8 || name.length < 2 || name.length > 80) {
@@ -154,7 +159,14 @@ async function registerUser(request, env) {
   });
   const authData = await authRes.json();
   if (!authRes.ok) {
-    return [{ error: authData.error?.message || "Erreur lors de la création du compte." }, 400];
+    const fbCode = String(authData.error?.message || "").split(" ")[0];
+    const FB_ERR = {
+      EMAIL_EXISTS: "Cet e-mail a déjà un compte. Clique sur « Déjà un compte ? » pour te connecter.",
+      INVALID_EMAIL: "Adresse e-mail invalide.",
+      TOO_MANY_ATTEMPTS_TRY_LATER: "Trop de tentatives, réessaie plus tard.",
+      WEAK_PASSWORD: "Mot de passe trop faible (6 caractères minimum).",
+    };
+    return [{ error: FB_ERR[fbCode] || "Erreur lors de la création du compte." }, 400];
   }
 
   const uid = authData.localId;
@@ -185,6 +197,9 @@ async function registerUser(request, env) {
     }).catch(() => {});
     return [{ error: "Inscription impossible, réessaie dans un instant." }, 500];
   }
+
+  notifyTelegram(env, ctx, "🆕 Nouvelle inscription\n👤 " + name + "\n📧 " + email + "\n📱 +" + phone + "\n🕒 " +
+    new Date().toLocaleString("fr-FR", { timeZone: "Africa/Abidjan" }) + "\n\n💰 À valider dans l'admin après le dépôt.");
 
   return [{ ok: true, message: "Compte créé avec succès." }, 200];
 }
@@ -358,4 +373,26 @@ async function migratePhones(request, env) {
     if (r.ok) done++; else skipped++;
   }
   return [{ ok: true, message: `${done} client(s) mis à jour, ${skipped} ignoré(s).` }, 200];
+}
+
+
+/* ---------- Notification Telegram (actif si TELEGRAM_BOT_TOKEN et TELEGRAM_CHAT_ID sont définis) ---------- */
+function notifyTelegram(env, ctx, text) {
+  if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) return;
+  const p = fetch("https://api.telegram.org/bot" + env.TELEGRAM_BOT_TOKEN + "/sendMessage", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chat_id: env.TELEGRAM_CHAT_ID, text, disable_web_page_preview: true }),
+  }).catch((e) => console.log("telegram:", e && e.message));
+  if (ctx && ctx.waitUntil) ctx.waitUntil(p);
+}
+
+/* ---------- Statut du compte connecté : le site l'interroge pour savoir si l'accès est activé ---------- */
+async function me(request, env) {
+  const idToken = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
+  if (!idToken) return [{ error: "no-access" }, 401];
+  const fbUser = await verifyFirebaseToken(env, idToken);
+  if (!fbUser) return [{ error: "invalid-token" }, 401];
+  const user = await getFirestoreUser(env, fbUser.localId);
+  return [{ acces: !!(user && user.acces === true) }, 200];
 }
