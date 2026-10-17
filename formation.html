@@ -1,246 +1,455 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex">
-<title>Espace Formation</title>
-<script>
-  (function () {
-    var pref = "auto";
-    try { pref = localStorage.getItem("mode") || "auto"; } catch (e) {}
-    var dark = pref === "dark" || (pref === "auto" && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
-    document.documentElement.setAttribute("data-mode", dark ? "dark" : "light");
-  })();
-</script>
-<style>
-  :root { --bg:#fff; --surface:#fff; --band:#FDF0F4; --ink:#1B1A22; --muted:#5A5560; --line:#EBD3DB; --accent:#E0307F; --accent-ink:#fff; --head:#0B4A57; --radius:12px;
-    --font: "Avenir Next","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; }
-  :root[data-mode="dark"] { color-scheme: dark; --bg:#121316; --surface:#1F2026; --band:#1A1B20; --ink:#EDEBEF; --muted:#A9A5B0; --line:#34353E; }
-  * { box-sizing: border-box; }
-  body { margin:0; font-family:var(--font); background:var(--bg); color:var(--ink); line-height:1.55; font-size:17px; }
-  .wrap { max-width:1040px; margin:0 auto; padding:0 20px; }
-  header { background:var(--head); color:#fff; padding:18px 0; }
-  header .header-flex { display:flex; justify-content:space-between; align-items:center; }
-  header h1 { margin:0; font-size:1.25rem; }
-  .logout-btn { background:transparent; border:1px solid #fff; color:#fff; padding:6px 14px; border-radius:8px; cursor:pointer; font-weight:700; font-size:.85rem; }
-  main { padding:24px 0 48px; }
-  .btn { display:inline-flex; align-items:center; justify-content:center; background:var(--accent); color:var(--accent-ink); font:inherit; font-weight:800; padding:13px 20px; border-radius:var(--radius); border:0; text-decoration:none; cursor:pointer; }
-  .btn.wa { background:#25D366; color:#06240F; }
-  .box { background:var(--surface); border:1.5px solid var(--line); border-radius:var(--radius); padding:20px; text-align:center; margin-top:20px; }
-  .msg { margin:0 0 14px; font-weight:600; }
-  .actions { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:14px; }
-  .layout { display:grid; gap:20px; }
-  .player { aspect-ratio:16/9; width:100%; background:#000; border-radius:var(--radius); overflow:hidden; }
-  .player iframe { width:100%; height:100%; border:0; display:block; }
-  .now { margin:10px 0 0; font-weight:700; }
-  .list h2 { font-size:.8rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:18px 0 6px; }
-  .list h2:first-child { margin-top:0; }
-  .lesson { display:flex; gap:12px; width:100%; text-align:left; font:inherit; color:var(--ink); background:var(--surface); border:1.5px solid var(--line); border-radius:10px; padding:11px 14px; margin:6px 0; cursor:pointer; }
-  .lesson b { flex:0 0 2em; color:var(--accent); }
-  .lesson[aria-current="true"] { border-color:var(--accent); }
-  .lesson:disabled { opacity:.55; cursor:not-allowed; }
-  .keep { margin-top:24px; background:var(--band); text-align:left; }
-  .keep p { margin:0 0 6px; color:var(--muted); font-size:.92rem; }
-  [hidden] { display:none !important; }
-  @media (min-width: 860px) { .layout { grid-template-columns: 1.6fr 1fr; align-items:start; } }
-
-  .cloth{height:18px;background-color:#062F39;background-image:linear-gradient(135deg,#E0307F 25%,transparent 25%),linear-gradient(225deg,#E0307F 25%,transparent 25%),linear-gradient(315deg,#E0307F 25%,transparent 25%),linear-gradient(45deg,#E0307F 25%,transparent 25%);background-size:18px 18px;background-position:-9px 0,-9px 0,0 0,0 0;}
-  header{position:relative;overflow:hidden;}
-  header::before{content:"";position:absolute;right:-120px;top:-140px;width:360px;height:360px;border-radius:50%;background:repeating-radial-gradient(circle,transparent 0 16px,rgba(255,255,255,.07) 16px 21px);pointer-events:none;}
-  header .header-flex{position:relative;}
-  .btn{border-radius:var(--radius);box-shadow:0 2px 0 rgba(0,0,0,.25);}
-</style>
-</head>
-<body>
-<header>
-  <div class="wrap header-flex">
-    <h1>Formation TikTok et Facebook</h1>
-    <button class="logout-btn" id="logout" type="button" hidden>Déconnexion</button>
-  </div>
-</header>
-<div class="cloth" aria-hidden="true"></div>
-
-<main class="wrap">
-  <div class="box" id="state" role="status">
-    <p class="msg" id="state-text">Vérification de l'accès en cours…</p>
-  </div>
-
-  <div id="course" hidden>
-    <div class="layout">
-      <div>
-        <div class="player" id="player">
-          <div style="display:grid;place-items:center;height:100%;color:#bbb;padding:20px;text-align:center">
-            Choisis une vidéo dans la liste pour démarrer
-          </div>
-        </div>
-        <p class="now" id="now"></p>
-      </div>
-      <div class="list" id="list"></div>
-    </div>
-
-    <div class="box keep">
-      <strong>Garde ton accès sécurisé</strong>
-      <p>Ton compte est personnel et limité à 3 appareils.</p>
-    </div>
-  </div>
-</main>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyDOiSztn34AVyFqF_ditRpZiHmeTCIwu80",
-    authDomain: "formation-lerbrb.firebaseapp.com",
-    projectId: "formation-lerbrb",
-    storageBucket: "formation-lerbrb.firebasestorage.app",
-    messagingSenderId: "623961164775",
-    appId: "1:623961164775:web:7ce4ec4762b78943b98b42"
-  };
-
-  var CONFIG = {
-    api: "https://acces-formation.privatslabs.workers.dev"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-
-  var DEV = "device_id";
-  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
-
-  function deviceId() {
-    var d = lsGet(DEV);
-    if (!d || !/^[A-Za-z0-9_-]{16,64}$/.test(d)) {
-      d = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => ("0" + b.toString(16)).slice(-2)).join("");
-      lsSet(DEV, d);
-    }
-    return d;
-  }
-
-  var $ = function (id) { return document.getElementById(id); };
-
-  $("logout").onclick = function () {
-    signOut(auth).then(function() { window.location.replace("index.html"); });
-  };
-
-  // Redirection forcée si non connecté ou non autorisé
-  onAuthStateChanged(auth, function (user) {
-    if (!user) {
-      // NON CONNECTÉ -> REDIRECTION IMMÉDIATE
-      window.location.replace("index.html");
-      return;
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Espace Formation</title>
+  <script>
+    (function () {
+      var pref = "auto";
+      try { pref = localStorage.getItem("mode") || "auto"; } catch (e) { }
+      var dark = pref === "dark" || (pref === "auto" && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.setAttribute("data-mode", dark ? "dark" : "light");
+    })();
+  </script>
+  <style>
+    :root {
+      --bg: #fff;
+      --surface: #fff;
+      --band: #FDF0F4;
+      --ink: #1B1A22;
+      --muted: #5A5560;
+      --line: #EBD3DB;
+      --accent: #E0307F;
+      --accent-ink: #fff;
+      --head: #0B4A57;
+      --radius: 12px;
+      --font: "Avenir Next", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
 
-    user.getIdToken(true)
-      .then(function (token) {
-        return fetch(CONFIG.api + "/videos", {
-          headers: { 
-            "Authorization": "Bearer " + token, 
-            "X-Device": deviceId() 
-          },
-          cache: "no-store"
-        });
-      })
-      .then(function (r) { 
-        return r.json().then(function (j) { return { status: r.status, body: j }; }); 
-      })
-      .then(function (res) {
-        if (res.status === 200) { 
-          $("logout").hidden = false;
-          LESSONS = res.body.lessons; currentUser = user; loadedAt = Date.now(); render(LESSONS); 
-          return; 
-        }
+    :root[data-mode="dark"] {
+      color-scheme: dark;
+      --bg: #121316;
+      --surface: #1F2026;
+      --band: #1A1B20;
+      --ink: #EDEBEF;
+      --muted: #A9A5B0;
+      --line: #34353E;
+    }
 
-        // ACCÈS REFUSÉ (ex: acces: false) -> DÉCONNEXION ET REDIRECTION IMMÉDIATE
-        var code = (res.body && res.body.error) || ("http-" + res.status);
-        var MSG = {
-          "not-paid": "Votre compte n'est pas encore validé par l'administrateur.",
-          "devices": "Limite de 3 appareils atteinte pour ce compte. Contactez l'administrateur.",
-          "invalid-token": "Session expirée. Reconnectez-vous.",
-          "no-access": "Session expirée. Reconnectez-vous.",
-          "bad-device": "Appareil non reconnu. Videz le cache du navigateur et réessayez."
-        };
-        var text = MSG[code] || ("Erreur serveur (" + res.status + "). Réessayez dans un instant ou contactez l'administrateur.");
-        console.warn("Accès /videos refusé :", res.status, code);
-        signOut(auth).then(function() {
-          alert("Accès refusé : " + text);
-          window.location.replace("index.html");
-        });
-      })
-      .catch(function () { 
-        signOut(auth).then(function() {
-          window.location.replace("index.html");
-        });
-      });
-  });
+    * {
+      box-sizing: border-box;
+    }
 
-  /* Les liens vidéo expirent après 30 min : on les renouvelle avant (au clic, et toutes les 20 min) */
-  var LESSONS = [], loadedAt = 0, currentUser = null, FRESH = 20 * 60 * 1000;
-  function refreshLinks() {
-    if (!currentUser) return Promise.resolve();
-    return currentUser.getIdToken(true)
-      .then(function (t) { return fetch(CONFIG.api + "/videos", { headers: { "Authorization": "Bearer " + t, "X-Device": deviceId() }, cache: "no-store" }); })
-      .then(function (r) {
-        if (r.status === 401 || r.status === 403) { signOut(auth).then(function () { window.location.replace("index.html"); }); return null; }
-        return r.ok ? r.json() : null;
-      })
-      .then(function (j) {
-        if (!j || !j.lessons) return;
-        j.lessons.forEach(function (n) { var o = LESSONS.find(function (x) { return x.n === n.n; }); if (o) o.url = n.url; });
-        loadedAt = Date.now();
-      })
-      .catch(function () {});
-  }
-  function fresh() { return Date.now() - loadedAt > FRESH ? refreshLinks() : Promise.resolve(); }
-  setInterval(refreshLinks, FRESH);
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.55;
+      font-size: 17px;
+    }
 
-  function render(lessons) {
-    $("state").hidden = true; 
-    $("course").hidden = false;
-    var list = $("list"); 
-    list.innerHTML = "";
-    var last = null, buttons = [];
+    .wrap {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
 
-    lessons.forEach(function (l) {
-      if (l.module !== last) { 
-        var h = document.createElement("h2"); 
-        h.textContent = l.module; 
-        list.appendChild(h); 
-        last = l.module; 
+    header {
+      background: var(--head);
+      color: #fff;
+      padding: 18px 0;
+    }
+
+    header .header-flex {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+
+    .logout-btn {
+      background: transparent;
+      border: 1px solid #fff;
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: .85rem;
+    }
+
+    main {
+      padding: 24px 0 48px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--accent);
+      color: var(--accent-ink);
+      font: inherit;
+      font-weight: 800;
+      padding: 13px 20px;
+      border-radius: var(--radius);
+      border: 0;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .btn.wa {
+      background: #25D366;
+      color: #06240F;
+    }
+
+    .box {
+      background: var(--surface);
+      border: 1.5px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .msg {
+      margin: 0 0 14px;
+      font-weight: 600;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 14px;
+    }
+
+    .layout {
+      display: grid;
+      gap: 20px;
+    }
+
+    .player {
+      aspect-ratio: 16/9;
+      width: 100%;
+      background: #000;
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .player iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+
+    .now {
+      margin: 10px 0 0;
+      font-weight: 700;
+    }
+
+    .list h2 {
+      font-size: .8rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--muted);
+      margin: 18px 0 6px;
+    }
+
+    .list h2:first-child {
+      margin-top: 0;
+    }
+
+    .lesson {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+      text-align: left;
+      font: inherit;
+      color: var(--ink);
+      background: var(--surface);
+      border: 1.5px solid var(--line);
+      border-radius: 10px;
+      padding: 11px 14px;
+      margin: 6px 0;
+      cursor: pointer;
+    }
+
+    .lesson b {
+      flex: 0 0 2em;
+      color: var(--accent);
+    }
+
+    .lesson[aria-current="true"] {
+      border-color: var(--accent);
+    }
+
+    .lesson:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    .keep {
+      margin-top: 24px;
+      background: var(--band);
+      text-align: left;
+    }
+
+    .keep p {
+      margin: 0 0 6px;
+      color: var(--muted);
+      font-size: .92rem;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (min-width: 860px) {
+      .layout {
+        grid-template-columns: 1.6fr 1fr;
+        align-items: start;
       }
-      var b = document.createElement("button");
-      b.type = "button"; 
-      b.className = "lesson";
-      var n = document.createElement("b"); 
-      n.textContent = l.n;
-      var t = document.createElement("span"); 
-      t.textContent = l.title + (l.url ? "" : " (bientôt)");
-      b.appendChild(n); 
-      b.appendChild(t);
-      if (!l.url) { b.disabled = true; }
-      b.addEventListener("click", function () { fresh().then(function () { play(l, b, buttons); }); });
-      list.appendChild(b); 
-      buttons.push(b);
-    });
-  }
+    }
 
-  function play(l, btn, buttons) {
-    if (!l.url) return;
-    buttons.forEach(function (b) { b.removeAttribute("aria-current"); });
-    btn.setAttribute("aria-current", "true");
-    var p = $("player"); 
-    p.innerHTML = "";
-    var f = document.createElement("iframe");
-    f.src = l.url; 
-    f.allow = "autoplay; fullscreen; picture-in-picture; encrypted-media"; 
-    f.allowFullscreen = true; 
-    f.title = l.title;
-    p.appendChild(f);
-    $("now").textContent = l.n + ". " + l.title;
-    p.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }
-</script>
+    .cloth {
+      height: 18px;
+      background-color: #062F39;
+      background-image: linear-gradient(135deg, #E0307F 25%, transparent 25%), linear-gradient(225deg, #E0307F 25%, transparent 25%), linear-gradient(315deg, #E0307F 25%, transparent 25%), linear-gradient(45deg, #E0307F 25%, transparent 25%);
+      background-size: 18px 18px;
+      background-position: -9px 0, -9px 0, 0 0, 0 0;
+    }
+
+    header {
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: "";
+      position: absolute;
+      right: -120px;
+      top: -140px;
+      width: 360px;
+      height: 360px;
+      border-radius: 50%;
+      background: repeating-radial-gradient(circle, transparent 0 16px, rgba(255, 255, 255, .07) 16px 21px);
+      pointer-events: none;
+    }
+
+    header .header-flex {
+      position: relative;
+    }
+
+    .btn {
+      border-radius: var(--radius);
+      box-shadow: 0 2px 0 rgba(0, 0, 0, .25);
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="wrap header-flex">
+      <h1>Formation TikTok et Facebook</h1>
+      <button class="logout-btn" id="logout" type="button" hidden>Déconnexion</button>
+    </div>
+  </header>
+  <div class="cloth" aria-hidden="true"></div>
+
+  <main class="wrap">
+    <div class="box" id="state" role="status">
+      <p class="msg" id="state-text">Vérification de l'accès en cours…</p>
+    </div>
+
+    <div id="course" hidden>
+      <br>
+      <div class="layout">
+        <div>
+          <div class="player" id="player">
+            <div style="display:grid;place-items:center;height:100%;color:#bbb;padding:20px;text-align:center">
+              Choisis une vidéo dans la liste pour démarrer
+            </div>
+          </div>
+          <p class="now" id="now"></p>
+        </div>
+        <div class="list" id="list"></div>
+      </div>
+
+      <div class="box keep">
+        <strong>Garde ton accès sécurisé</strong>
+        <p>Ton compte est personnel et limité à 3 appareils.</p>
+      </div>
+      <br>
+
+    </div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDOiSztn34AVyFqF_ditRpZiHmeTCIwu80",
+      authDomain: "formation-lerbrb.firebaseapp.com",
+      projectId: "formation-lerbrb",
+      storageBucket: "formation-lerbrb.firebasestorage.app",
+      messagingSenderId: "623961164775",
+      appId: "1:623961164775:web:7ce4ec4762b78943b98b42"
+    };
+
+    var CONFIG = {
+      api: "https://acces-formation.privatslabs.workers.dev"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    var DEV = "device_id";
+    function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { } }
+
+    function deviceId() {
+      var d = lsGet(DEV);
+      if (!d || !/^[A-Za-z0-9_-]{16,64}$/.test(d)) {
+        d = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => ("0" + b.toString(16)).slice(-2)).join("");
+        lsSet(DEV, d);
+      }
+      return d;
+    }
+
+    var $ = function (id) { return document.getElementById(id); };
+
+    $("logout").onclick = function () {
+      signOut(auth).then(function () { window.location.replace("index.html"); });
+    };
+
+    // Redirection forcée si non connecté ou non autorisé
+    onAuthStateChanged(auth, function (user) {
+      if (!user) {
+        // NON CONNECTÉ -> REDIRECTION IMMÉDIATE
+        window.location.replace("index.html");
+        return;
+      }
+
+      user.getIdToken(true)
+        .then(function (token) {
+          return fetch(CONFIG.api + "/videos", {
+            headers: {
+              "Authorization": "Bearer " + token,
+              "X-Device": deviceId()
+            },
+            cache: "no-store"
+          });
+        })
+        .then(function (r) {
+          return r.json().then(function (j) { return { status: r.status, body: j }; });
+        })
+        .then(function (res) {
+          if (res.status === 200) {
+            $("logout").hidden = false;
+            LESSONS = res.body.lessons; currentUser = user; loadedAt = Date.now(); render(LESSONS);
+            return;
+          }
+
+          // ACCÈS REFUSÉ (ex: acces: false) -> DÉCONNEXION ET REDIRECTION IMMÉDIATE
+          var code = (res.body && res.body.error) || ("http-" + res.status);
+          var MSG = {
+            "not-paid": "Votre compte n'est pas encore validé par l'administrateur.",
+            "devices": "Limite de 3 appareils atteinte pour ce compte. Contactez l'administrateur.",
+            "invalid-token": "Session expirée. Reconnectez-vous.",
+            "no-access": "Session expirée. Reconnectez-vous.",
+            "bad-device": "Appareil non reconnu. Videz le cache du navigateur et réessayez."
+          };
+          var text = MSG[code] || ("Erreur serveur (" + res.status + "). Réessayez dans un instant ou contactez l'administrateur.");
+          console.warn("Accès /videos refusé :", res.status, code);
+          signOut(auth).then(function () {
+            alert("Accès refusé : " + text);
+            window.location.replace("index.html");
+          });
+        })
+        .catch(function () {
+          signOut(auth).then(function () {
+            window.location.replace("index.html");
+          });
+        });
+    });
+
+    /* Les liens vidéo expirent après 30 min : on les renouvelle avant (au clic, et toutes les 20 min) */
+    var LESSONS = [], loadedAt = 0, currentUser = null, FRESH = 20 * 60 * 1000;
+    function refreshLinks() {
+      if (!currentUser) return Promise.resolve();
+      return currentUser.getIdToken(true)
+        .then(function (t) { return fetch(CONFIG.api + "/videos", { headers: { "Authorization": "Bearer " + t, "X-Device": deviceId() }, cache: "no-store" }); })
+        .then(function (r) {
+          if (r.status === 401 || r.status === 403) { signOut(auth).then(function () { window.location.replace("index.html"); }); return null; }
+          return r.ok ? r.json() : null;
+        })
+        .then(function (j) {
+          if (!j || !j.lessons) return;
+          j.lessons.forEach(function (n) { var o = LESSONS.find(function (x) { return x.n === n.n; }); if (o) o.url = n.url; });
+          loadedAt = Date.now();
+        })
+        .catch(function () { });
+    }
+    function fresh() { return Date.now() - loadedAt > FRESH ? refreshLinks() : Promise.resolve(); }
+    setInterval(refreshLinks, FRESH);
+
+    function render(lessons) {
+      $("state").hidden = true;
+      $("course").hidden = false;
+      var list = $("list");
+      list.innerHTML = "";
+      var last = null, buttons = [];
+
+      lessons.forEach(function (l) {
+        if (l.module !== last) {
+          var h = document.createElement("h2");
+          h.textContent = l.module;
+          list.appendChild(h);
+          last = l.module;
+        }
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "lesson";
+        var n = document.createElement("b");
+        n.textContent = l.n;
+        var t = document.createElement("span");
+        t.textContent = l.title + (l.url ? "" : " (bientôt)");
+        b.appendChild(n);
+        b.appendChild(t);
+        if (!l.url) { b.disabled = true; }
+        b.addEventListener("click", function () { fresh().then(function () { play(l, b, buttons); }); });
+        list.appendChild(b);
+        buttons.push(b);
+      });
+    }
+
+    function play(l, btn, buttons) {
+      if (!l.url) return;
+      buttons.forEach(function (b) { b.removeAttribute("aria-current"); });
+      btn.setAttribute("aria-current", "true");
+      var p = $("player");
+      p.innerHTML = "";
+      var f = document.createElement("iframe");
+      f.src = l.url;
+      f.allow = "autoplay; fullscreen; picture-in-picture; encrypted-media";
+      f.allowFullscreen = true;
+      f.title = l.title;
+      p.appendChild(f);
+      $("now").textContent = l.n + ". " + l.title;
+      p.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  </script>
 </body>
+
 </html>

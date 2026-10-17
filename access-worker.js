@@ -226,6 +226,8 @@ async function getFirestoreUser(env, uid) {
   return {
     uid,
     acces: j.fields.acces?.booleanValue || false,
+    name: j.fields.name?.stringValue || "",
+    phone: j.fields.phone?.stringValue || "",
     devices: (j.fields.devices?.arrayValue?.values || []).map((v) => v.stringValue).filter(Boolean),
   };
 }
@@ -394,5 +396,5 @@ async function me(request, env) {
   const fbUser = await verifyFirebaseToken(env, idToken);
   if (!fbUser) return [{ error: "invalid-token" }, 401];
   const user = await getFirestoreUser(env, fbUser.localId);
-  return [{ acces: !!(user && user.acces === true) }, 200];
+  return [{ acces: !!(user && user.acces === true), name: user ? user.name : "", phone: user ? user.phone : "" }, 200];
 }

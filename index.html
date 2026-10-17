@@ -125,6 +125,26 @@
   @keyframes toastIn { from { transform:translateY(-24px) scale(.96); opacity:0; } to { transform:none; opacity:1; } }
   @keyframes toastOut { to { transform:translateX(30px); opacity:0; } }
   @media (prefers-reduced-motion:reduce) { .led,.toast,.toast.out { animation:none; } }
+  dialog#checkout { max-height:92vh; }
+  #step-2 { text-align:center; }
+  #step-2 h3 { margin:6px 0 2px; font-size:1.2rem; }
+  .phone-ico { display:block; margin:2px auto 0; filter:drop-shadow(0 8px 12px rgba(224,48,127,.3)); animation:phoneFloat 3.4s ease-in-out infinite; }
+  .scr-ring { transform-box:fill-box; transform-origin:center; animation:ringBeat 3.2s ease-in-out infinite; }
+  .scr-check { stroke-dasharray:46; animation:checkLoop 3.2s ease-in-out infinite; }
+  @keyframes phoneFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-5px); } }
+  @keyframes ringBeat { 0%,100% { transform:scale(1); } 50% { transform:scale(1.09); } }
+  @keyframes checkLoop { 0%,15% { stroke-dashoffset:46; opacity:0; } 15.1% { opacity:1; } 40%,85% { stroke-dashoffset:0; opacity:1; } 100% { stroke-dashoffset:0; opacity:0; } }
+  .amount { font-size:2.2rem; font-weight:800; letter-spacing:-.03em; line-height:1.1; color:var(--accent); }
+  .amount small { font-size:.95rem; font-weight:700; color:var(--muted); letter-spacing:0; }
+  .ops { margin:4px 0 16px; font-size:.84rem; color:var(--muted); }
+  .num-card { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 8px 8px 16px; background:var(--band); border:1.5px dashed var(--accent); border-radius:14px; }
+  .num-card .num { font-size:1.4rem; font-weight:800; letter-spacing:.05em; user-select:all; }
+  .copy-btn { font:inherit; font-weight:700; font-size:.88rem; padding:9px 16px; border-radius:999px; border:0; cursor:pointer; background:var(--accent); color:var(--accent-ink); transition:transform .15s,background .2s; }
+  .copy-btn:active { transform:scale(.95); } .copy-btn.ok { background:#25D366; color:#06240F; }
+  .copy-btn:focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
+  .status { display:inline-flex; align-items:center; gap:8px; margin:16px 0 0; font-size:.88rem; font-weight:600; }
+  .hint { margin:4px 0 0; font-size:.84rem; color:var(--muted); }
+  @media (prefers-reduced-motion:reduce) { .phone-ico,.scr-ring,.scr-check { animation:none !important; } }
 </style>
 </head>
 <body>
@@ -242,28 +262,27 @@
 
     <!-- Étape 2 : Instructions de paiement -->
     <div id="step-2" hidden>
-      <div class="payment-box">
-        <div class="live-pill" role="status"><span class="led" aria-hidden="true"></span><span>Actif · en attente de ton dépôt</span></div>
-        <div class="payment-icon">💳</div>
-        <h3 style="margin-bottom: 4px;">Paiement Mobile Money</h3>
-        <p class="note" style="margin-bottom: 8px;">Montant à régler : <strong style="color:var(--accent);">10 000 FCFA</strong></p>
-        
-        <div class="operators-grid">
-          <span class="op-badge op-wave">Wave</span>
-          <span class="op-badge op-orange">Orange Money</span>
-          <span class="op-badge op-mtn">MTN MoMo</span>
-          <span class="op-badge op-moov">Moov Money</span>
-        </div>
+      <svg class="phone-ico" viewBox="0 0 120 190" width="54" height="86" aria-hidden="true" focusable="false">
+        <defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E0307F"/><stop offset="1" stop-color="#FF9A3D"/></linearGradient></defs>
+        <rect x="6" y="4" width="108" height="182" rx="22" fill="url(#pg)"/>
+        <rect x="13" y="11" width="94" height="168" rx="16" fill="#10141B"/>
+        <circle class="scr-ring" cx="60" cy="95" r="30" fill="rgba(37,211,102,.15)" stroke="#25D366" stroke-width="3"/>
+        <path class="scr-check" d="M45 95 l11 11 l21 -23" stroke="#25D366" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
 
-        <p style="font-size: 0.9rem; margin: 12px 0 4px; color: var(--muted);">Effectue ton dépôt sur le numéro :</p>
-        <div class="phone-number-display">0705146574</div>
+      <h3>Paiement Mobile Money</h3>
+      <div class="amount">10 000 <small>FCFA</small></div>
+      <p class="ops">Wave · Orange Money · MTN MoMo · Moov Money</p>
 
-        <p style="font-size: 0.85rem; line-height: 1.4; margin-top: 10px; color: var(--ink);">
-          Une fois ton dépôt effectué, l'administrateur confirmera ton numéro et ton accès sera activé instantanément pour te connecter avec ton e-mail et ton mot de passe.
-        </p>
+      <div class="num-card">
+        <span class="num" id="pay-number">0705146574</span>
+        <button type="button" class="copy-btn" id="copy-num" aria-label="Copier le numéro">Copier</button>
       </div>
 
-      <div class="row" style="margin-top: 16px;">
+      <p class="status" role="status"><span class="led" aria-hidden="true"></span>En attente de ton dépôt</p>
+      <p class="hint"><b>Ton compte est créé, mais pas encore activé.</b> Il le sera dès que ton dépôt est confirmé. Préviens-nous sur WhatsApp : tu seras notifié ici.</p>
+
+      <div class="row">
         <button class="btn ghost" type="button" id="co-back">Retour</button>
         <a class="btn wa" id="co-confirm-wa" href="#" target="_blank" rel="noopener" style="flex:1">Prévenir sur WhatsApp</a>
       </div>
@@ -385,7 +404,7 @@
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTsLoad" async defer></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDOiSztn34AVyFqF_ditRpZiHmeTCIwu80",
@@ -413,7 +432,7 @@
   if (window.__tsReady) renderTs();
 
   /* Suivi de l'accès : si déjà validé -> formation ; sinon on attend et on prévient dès que l'admin active l'accès */
-  var pending = false, pollTimer = null;
+  var pending = false, pollTimer = null, paymentShown = false, lastInfo = null;
 
   function showAccessToast() {
     var host = document.getElementById("toast-host");
@@ -447,20 +466,25 @@
         if (j.acces === true) {
           stopPolling();
           if (!pending) { window.location.replace("formation.html"); return; }
-          pending = false;
+          pending = false; paymentShown = false; lastInfo = null;
+          
+          document.getElementById("open-login-top").textContent = "Se connecter";
           var d = document.getElementById("checkout");
           if (d && d.open) d.close();
           showAccessToast();
         } else {
           pending = true;
+          lastInfo = j;
+          document.getElementById("open-login-top").textContent = "Mon paiement";
           startPolling();
+          if (!paymentShown) { paymentShown = true; showPayment(); }
         }
       })
       .catch(function () {});
   }
 
   onAuthStateChanged(auth, function (user) {
-    if (user) { checkAccess(); } else { pending = false; stopPolling(); }
+    if (user) { checkAccess(); } else { pending = false; paymentShown = false; lastInfo = null; stopPolling();  document.getElementById("open-login-top").textContent = "Se connecter"; }
   });
   document.addEventListener("visibilitychange", function () { if (!document.hidden && pending) checkAccess(); });
 
@@ -480,7 +504,21 @@
     pwdInput.type = pwdInput.type === "password" ? "text" : "password";
   };
 
+  // Compte existant sans accès : on le garde sur le modal de paiement
+  function showPayment() {
+    var u = auth.currentUser, info = lastInfo || {};
+    var who = (info.name ? info.name : (u && u.email) || "") + (info.phone ? "\nTél : +" + info.phone : "");
+    var waMsg = encodeURIComponent("Bonjour, j'ai effectué mon dépôt.\nNom : " + who + "\nJ'ai fait le dépôt sur le 0705146574, veuillez valider mon accès.");
+    document.getElementById("co-confirm-wa").href = "https://wa.me/212782907510?text=" + waMsg;
+    document.getElementById("co-back").textContent = "Déconnexion";
+    step1.hidden = true;
+    stepLogin.hidden = true;
+    step2.hidden = false;
+    if (!dlg.open) { if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", ""); }
+  }
+
   function openModal() {
+    if (pending) { showPayment(); return; }
     err.hidden = true;
     step1.hidden = false;
     step2.hidden = true;
@@ -489,6 +527,7 @@
   }
 
   document.getElementById("open-login-top").onclick = function() {
+    if (pending) { showPayment(); return; }
     step1.hidden = true;
     step2.hidden = true;
     stepLogin.hidden = false;
@@ -506,8 +545,14 @@
     step1.hidden = false;
   };
   document.getElementById("co-back").onclick = function() {
-    step2.hidden = true;
-    step1.hidden = false;
+    signOut(auth).catch(function () {}).then(function () {
+      pending = false; paymentShown = false; lastInfo = null; stopPolling();
+      document.getElementById("co-back").textContent = "Retour";
+      document.getElementById("open-login-top").textContent = "Se connecter";
+      step2.hidden = true;
+      step1.hidden = true;
+      stepLogin.hidden = false;
+    });
   };
 
   // Enregistrement au clic sur "Suivant"
@@ -549,8 +594,13 @@
         document.getElementById("co-confirm-wa").href = "https://wa.me/212782907510?text=" + waMsg;
         step1.hidden = true;
         step2.hidden = false;
+        pending = true; paymentShown = true;
+        document.getElementById("co-back").textContent = "Déconnexion";
+        document.getElementById("open-login-top").textContent = "Mon paiement";
         // Connexion silencieuse : permet de te prévenir ici dès que l'accès est activé
-        signInWithEmailAndPassword(auth, email, password).catch(function () {});
+        signInWithEmailAndPassword(auth, email, password).catch(function () {
+          pending = false; paymentShown = false;
+        });
       } else {
         err.textContent = res.body.error || "Erreur lors de l'inscription.";
         err.hidden = false;
@@ -564,6 +614,19 @@
     });
   };
 
+  // Copier le numéro de dépôt
+  document.getElementById("copy-num").onclick = function () {
+    var btn = this, num = document.getElementById("pay-number").textContent.trim();
+    function done() { btn.textContent = "Copié ✓"; btn.classList.add("ok"); setTimeout(function () { btn.textContent = "Copier"; btn.classList.remove("ok"); }, 2000); }
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(num).then(done, fallback); } else { fallback(); }
+    function fallback() {
+      var t = document.createElement("textarea"); t.value = num; t.style.position = "fixed"; t.style.opacity = "0";
+      document.body.appendChild(t); t.select();
+      try { document.execCommand("copy"); done(); } catch (e) {}
+      t.remove();
+    }
+  };
+
   // Connexion membre
   document.getElementById("login-go").onclick = function() {
     var email = document.getElementById("login-email").value.trim();
@@ -572,14 +635,7 @@
 
     loginErr.style.color = "";
     signInWithEmailAndPassword(auth, email, password)
-      .then(() => checkAccess())
-      .then(() => {
-        if (pending) {
-          loginErr.textContent = "Ton compte n'est pas encore validé. Garde cette page ouverte : tu seras prévenu ici dès que ton accès sera activé.";
-          loginErr.style.color = "var(--muted)";
-          loginErr.hidden = false;
-        }
-      })
+      .then(() => { loginErr.hidden = true; return checkAccess(); })
       .catch((e) => {
         loginErr.textContent = "E-mail ou mot de passe incorrect.";
         loginErr.hidden = false;
