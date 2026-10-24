@@ -95,6 +95,8 @@
     .list { padding:0 2px calc(16px + env(safe-area-inset-bottom,0px)) 0; }
   }
   .player.pfs { max-height:none; }
+  /* Plein écran simulé : la vidéo est pivotée en paysage quand le téléphone est tenu en portrait */
+  .player.pfs.rot { inset:auto; top:0; left:100vw; left:100dvw; right:auto; bottom:auto; width:100vh; width:100dvh; height:100vw; height:100dvw; transform-origin:top left; transform:rotate(90deg); }
   /* ---- Chargement : même style que la page d'accueil ---- */
   .spin { display:inline-block; width:22px; height:22px; border-radius:50%; border:3px solid color-mix(in srgb,var(--accent) 22%,transparent); border-top-color:var(--accent); animation:spin .8s linear infinite; }
   .spin.big { width:46px; height:46px; border-width:4px; }
@@ -308,32 +310,51 @@
     }
   }
 
-  /* Plein écran : natif si possible, sinon mode plein écran simulé (iPhone et navigateurs mobiles limités) */
+  /* Plein écran en un clic, en horizontal comme YouTube :
+     1) plein écran natif + verrouillage paysage (Android, ordinateur, iPad)
+     2) si le téléphone ne sait pas verrouiller l'orientation (iPhone…) : plein écran simulé, avec la vidéo
+        pivotée en paysage même si le téléphone reste en portrait */
   (function () {
     var btn = $("fs"), player = $("player"), close = null;
-    function lockLandscape() { try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock("landscape").catch(function () {}); } catch (e) {} }
+    function isPortrait() { return window.innerHeight > window.innerWidth; }
+    function updateRot() { player.classList.toggle("rot", player.classList.contains("pfs") && isPortrait()); }
     function pseudoOn() {
       player.classList.add("pfs"); document.body.classList.add("pfs-on");
-      close = document.createElement("button"); close.type = "button"; close.className = "pfs-close"; close.textContent = "\u2715 Quitter";
-      close.onclick = pseudoOff; player.appendChild(close);
+      if (!close) {
+        close = document.createElement("button"); close.type = "button"; close.className = "pfs-close"; close.textContent = "\u2715 Quitter";
+        close.onclick = pseudoOff; player.appendChild(close);
+      }
+      updateRot();
     }
     function pseudoOff() {
-      player.classList.remove("pfs"); document.body.classList.remove("pfs-on");
+      player.classList.remove("pfs", "rot"); document.body.classList.remove("pfs-on");
       if (close) { close.remove(); close = null; }
     }
     function isNative() { return document.fullscreenElement || document.webkitFullscreenElement; }
+    function exitNative() { try { var ex = document.exitFullscreen || document.webkitExitFullscreen; if (ex) Promise.resolve(ex.call(document)).catch(function () {}); } catch (e) {} }
+    function goNative() {
+      var rq = player.requestFullscreen || player.webkitRequestFullscreen;
+      if (!rq) { pseudoOn(); return; }
+      var r;
+      try { r = rq.call(player); } catch (e) { pseudoOn(); return; }
+      Promise.resolve(r).then(function () {
+        if (!isPortrait()) return;                       // déjà en horizontal : rien à forcer
+        if (screen.orientation && screen.orientation.lock) {
+          return screen.orientation.lock("landscape").catch(function () { exitNative(); pseudoOn(); });
+        }
+        exitNative(); pseudoOn();                        // pas de verrouillage possible : plein écran simulé pivoté
+      }).catch(pseudoOn);
+    }
     btn.addEventListener("click", function () {
       if (player.classList.contains("pfs")) { pseudoOff(); return; }
-      if (isNative()) { (document.exitFullscreen || document.webkitExitFullscreen).call(document); return; }
-      var rq = player.requestFullscreen || player.webkitRequestFullscreen;
-      if (rq) {
-        try {
-          var r = rq.call(player);
-          if (r && r.then) { r.then(lockLandscape).catch(pseudoOn); } else { lockLandscape(); }
-          return;
-        } catch (e) {}
-      }
-      pseudoOn();
+      if (isNative()) { exitNative(); return; }
+      goNative();
+    });
+    window.addEventListener("resize", updateRot);
+    window.addEventListener("orientationchange", function () { setTimeout(updateRot, 200); });
+    document.addEventListener("fullscreenchange", function () {
+      // sortie du plein écran natif : on libère l'orientation
+      if (!isNative()) { try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {} }
     });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && player.classList.contains("pfs")) pseudoOff(); });
   })();
