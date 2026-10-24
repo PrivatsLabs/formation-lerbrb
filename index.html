@@ -548,6 +548,11 @@
     probe.onload = function () { document.querySelectorAll(".pimg").forEach(function (im) { im.src = PHOTO; im.hidden = false; }); };
     probe.src = PHOTO; // si la photo est introuvable, on garde la lettre
     document.getElementById("fp-wa").href = "https://wa.me/" + WA + "?text=" + encodeURIComponent("Bonjour, j'ai une question sur la formation.");
+    // Bouton « Écrire sur WhatsApp » de la carte de prix
+    document.querySelectorAll("[data-wa]").forEach(function (el) {
+      el.href = "https://wa.me/" + WA + "?text=" + encodeURIComponent("Bonjour, j'ai une question sur la formation.");
+      el.target = "_blank"; el.rel = "noopener";
+    });
     function toggle(open) { panel.hidden = !open; btn.setAttribute("aria-expanded", String(open)); if (open) label.hidden = true; }
     btn.addEventListener("click", function () { toggle(panel.hidden); });
     document.getElementById("fclose").addEventListener("click", function () { toggle(false); btn.focus(); });
